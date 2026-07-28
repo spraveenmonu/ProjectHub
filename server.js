@@ -78,7 +78,19 @@ app.get('/api/projects', (req, res) => {
   try {
     const dirs = fs.readdirSync(PROJECTS_DIR).filter(file => {
       const fullPath = path.join(PROJECTS_DIR, file);
-      return fs.statSync(fullPath).isDirectory() && file !== 'ProjectHub';
+      const isDir = fs.statSync(fullPath).isDirectory();
+      
+      // Filter out user-requested excluded projects
+      const isExcluded = [
+        'ProjectHub',
+        'Portfolio',
+        'Riddles',
+        'Night Safe NiZHal',
+        'traffic_sim',
+        'traffic_simulation'
+      ].includes(file);
+      
+      return isDir && !isExcluded;
     });
 
     const projects = dirs.map(dir => inspectProject(dir));
@@ -215,15 +227,27 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     child.on('close', (code) => {
       projectState.logs.push(`[ProjectHub] Process ${prefix || cmd} exited with code ${code}`);
       
-      // If all processes exited, mark as idle
-      const activeCount = projectState.childProcesses.filter(c => c.pid !== child.pid && c.exitCode === null).length;
-      if (activeCount === 0) {
-        projectState.status = 'idle';
+      // Failsafe fallback: If the process failed to run (code !== 0) and we don't have a port URL,
+      // boot the static file server so the project can still be loaded!
+      if (code !== 0 && !projectState.url && projectState.status !== 'idle') {
+        projectState.logs.push(`[ProjectHub] Process failed. Falling back to static web hosting...`);
+        launchStaticAppServer();
+      } else {
+        const activeCount = projectState.childProcesses.filter(c => c.pid !== child.pid && c.exitCode === null).length;
+        if (activeCount === 0) {
+          projectState.status = 'idle';
+        }
       }
     });
 
     child.on('error', (err) => {
       projectState.logs.push(`[ProjectHub] Process ${prefix || cmd} error: ${err.message}`);
+      
+      // Failsafe fallback on startup error
+      if (!projectState.url && projectState.status !== 'idle') {
+        projectState.logs.push(`[ProjectHub] Launch failed. Falling back to static web hosting...`);
+        launchStaticAppServer();
+      }
     });
   };
 
@@ -263,6 +287,7 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     
     const installer = spawn('npm', ['install'], { cwd, shell: isWindows });
     projectState.childProcesses.push(installer);
+
     installer.stdout.on('data', (d) => {
       d.toString().split('\n').forEach(l => {
         if (l.trim()) projectState.logs.push(`[npm install] ${l.trim()}`);
@@ -305,7 +330,6 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     const startAppWithDependencies = () => {
       if (!hasNodeModules) {
         runNpmInstall(projectPath, () => {
-          // Once root npm install completes, check if there's a backend/server folder to install & start too
           checkAndStartSubfolderServer();
         });
       } else {
@@ -314,7 +338,6 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     };
 
     const checkAndStartSubfolderServer = () => {
-      // Start root client
       startRootApp();
 
       // Check if subfolder has package.json (e.g. Chatting application/server)
@@ -352,7 +375,6 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     const scriptFile = files.includes('server.js') ? 'server.js' : (files.includes('app.js') ? 'app.js' : 'index.js');
     const scriptContent = fs.readFileSync(path.join(projectPath, scriptFile), 'utf8');
     
-    // Check if it imports express
     const needsExpress = scriptContent.includes("require('express')") || scriptContent.includes('require("express")');
     
     const runScript = () => {
@@ -363,7 +385,6 @@ app.post('/api/projects/:name/activate', async (req, res) => {
       projectState.logs.push('[ProjectHub] Node.js script detected express require but no package.json. Initializing basic setup...');
       projectState.status = 'installing';
       
-      // Auto initialize and install express
       fs.writeFileSync(path.join(projectPath, 'package.json'), JSON.stringify({
         name: name.toLowerCase(),
         version: '1.0.0',
@@ -382,7 +403,6 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     // 3. PYTHON PROJECT (Django, Flask, Streamlit, or script)
     projectState.status = 'installing';
 
-    // Analyzer of python file imports to auto install missing libraries
     const getPythonImports = () => {
       const imports = new Set();
       const pyFiles = files.filter(f => f.endsWith('.py'));
@@ -412,7 +432,9 @@ app.post('/api/projects/:name/activate', async (req, res) => {
       projectState.status = 'running';
       
       if (hasManagePy) {
-        spawnProcess(pythonBin, ['manage.py', 'runserver']);
+        // Run Django server on a random port
+        const djPort = 8000 + Math.floor(Math.random() * 1000);
+        spawnProcess(pythonBin, ['manage.py', 'runserver', `127.0.0.1:${djPort}`]);
       } else if (hasRunPy) {
         spawnProcess(pythonBin, ['run.py']);
       } else if (hasAppPy || hasMainPy) {
@@ -421,13 +443,14 @@ app.post('/api/projects/:name/activate', async (req, res) => {
           const content = fs.readFileSync(path.join(projectPath, targetFile), 'utf8');
           
           if (content.includes('import streamlit') || content.includes('streamlit')) {
-            // Streamlit application
-            spawnProcess(pythonBin, ['-m', 'streamlit', 'run', targetFile]);
+            // Run Streamlit on random port and headless
+            const stPort = 8500 + Math.floor(Math.random() * 1000);
+            spawnProcess(pythonBin, ['-m', 'streamlit', 'run', targetFile, '--server.port', stPort.toString(), '--server.headless', 'true']);
           } else if (content.includes('FastAPI') || content.includes('import fastapi')) {
-            // FastAPI uvicorn application
-            // Check if file name is app or main
+            // Run FastAPI/uvicorn on dynamic port
+            const pyPort = 8000 + Math.floor(Math.random() * 1000);
             const moduleName = targetFile.replace('.py', '');
-            spawnProcess(pythonBin, ['-m', 'uvicorn', `${moduleName}:app`, '--host', '127.0.0.1', '--port', '8000']);
+            spawnProcess(pythonBin, ['-m', 'uvicorn', `${moduleName}:app`, '--host', '127.0.0.1', '--port', pyPort.toString()]);
           } else {
             // Standard script or Flask with built-in app.run()
             spawnProcess(pythonBin, [targetFile]);
@@ -436,7 +459,6 @@ app.post('/api/projects/:name/activate', async (req, res) => {
           spawnProcess(pythonBin, [targetFile]);
         }
       } else {
-        // Fallback for general Python folder with only requirements
         launchStaticAppServer();
       }
     };
@@ -472,7 +494,7 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     // 4. STATIC SITE
     launchStaticAppServer();
   } else {
-    // 5. ANY OTHER GENERAL FOLDER FALLBACK (e.g. simple markdown or data folders)
+    // 5. ANY OTHER GENERAL FOLDER FALLBACK
     launchStaticAppServer();
   }
 
