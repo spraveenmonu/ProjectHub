@@ -8,23 +8,173 @@ const app = express();
 const PORT = process.env.PORT || 4200;
 const PROJECTS_DIR = path.resolve('D:\\Projects\\Spraveenmonu');
 
+// Projects to hide from the dashboard (self + user excluded projects)
+const EXCLUDED_PROJECTS = new Set([
+  'ProjectHub',
+  '.git',
+  'Portfolio',
+  'Riddles',
+  'traffic_sim',
+  'traffic_simulation',
+  'Night Safe NiZHal',
+  'Hackathon Project'
+]);
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Store running processes
-// Key: project name, Value: { childProcesses: ChildProcess[], logs: string[], port: number, startTime: Date, type: string, serverInstance: http.Server, url: string, status: 'idle' | 'installing' | 'running' | 'failed' }
 const runningProjects = new Map();
 
-// Helper: Detect project details
+// Local Database File
+const DB_FILE = path.join(__dirname, 'db.json');
+
+function loadDB() {
+  try {
+    if (!fs.existsSync(DB_FILE)) {
+      const initial = { favorites: [], launchStats: {}, projectOverrides: {} };
+      fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2));
+      return initial;
+    }
+    const data = fs.readFileSync(DB_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch (err) {
+    return { favorites: [], launchStats: {}, projectOverrides: {} };
+  }
+}
+
+function saveDB(dbData) {
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(dbData, null, 2));
+  } catch (err) {
+    console.error('Failed to save db.json:', err);
+  }
+}
+
+// ============================================================================
+// HELPERS: Project Detection & Categorization
+// ============================================================================
+
+function detectTechStack(projectPath, files) {
+  const stack = [];
+  const hasPackageJson = files.includes('package.json');
+
+  if (hasPackageJson) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(path.join(projectPath, 'package.json'), 'utf8'));
+      const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+
+      if (allDeps['react'] || allDeps['react-dom']) stack.push('React');
+      if (allDeps['vue']) stack.push('Vue');
+      if (allDeps['svelte']) stack.push('Svelte');
+      if (allDeps['next']) stack.push('Next.js');
+      if (allDeps['vite']) stack.push('Vite');
+      if (allDeps['express']) stack.push('Express');
+      if (allDeps['socket.io'] || allDeps['socket.io-client']) stack.push('Socket.IO');
+      if (allDeps['mongoose'] || allDeps['mongodb']) stack.push('MongoDB');
+      if (allDeps['tailwindcss']) stack.push('Tailwind');
+      if (allDeps['typescript']) stack.push('TypeScript');
+
+      if (stack.length === 0 && files.includes('vite.config.js')) stack.push('Vite');
+      if (stack.length === 0) stack.push('Node.js');
+    } catch (e) {
+      stack.push('Node.js');
+    }
+  }
+
+  // Python detection
+  const pyFiles = files.filter(f => f.endsWith('.py'));
+  if (pyFiles.length > 0) {
+    pyFiles.forEach(pf => {
+      try {
+        const content = fs.readFileSync(path.join(projectPath, pf), 'utf8');
+        if (content.includes('streamlit')) stack.push('Streamlit');
+        if (content.includes('flask') || content.includes('Flask')) stack.push('Flask');
+        if (content.includes('fastapi') || content.includes('FastAPI')) stack.push('FastAPI');
+        if (content.includes('django')) stack.push('Django');
+        if (content.includes('pygame')) stack.push('Pygame');
+        if (content.includes('pandas')) stack.push('Pandas');
+        if (content.includes('sklearn') || content.includes('scikit')) stack.push('Scikit-learn');
+      } catch (e) {}
+    });
+    if (!stack.some(s => ['Flask', 'FastAPI', 'Django', 'Streamlit', 'Pygame', 'Pandas', 'Scikit-learn'].includes(s))) {
+      stack.push('Python');
+    }
+  }
+
+  if (files.includes('requirements.txt') && !stack.some(s => s.startsWith('P') || s === 'Flask' || s === 'FastAPI' || s === 'Django' || s === 'Streamlit')) {
+    stack.push('Python');
+  }
+
+  if (files.includes('index.html') && stack.length === 0) {
+    stack.push('HTML/CSS');
+    if (files.some(f => f.endsWith('.js') && f !== 'vite.config.js')) stack.push('JavaScript');
+  }
+
+  return [...new Set(stack)];
+}
+
+function detectCategory(name, techStack, files) {
+  const nameLower = name.toLowerCase();
+
+  // Security/Cyber category keywords
+  const securityKeywords = ['phishing', 'vulnerability', 'malware', 'firewall', 'ransomware', 'ransomeware', 'cyber', 'port scanner', 'password', 'scanner'];
+  if (securityKeywords.some(kw => nameLower.includes(kw))) return 'security';
+
+  // Python apps
+  if (techStack.some(t => ['Flask', 'FastAPI', 'Django', 'Streamlit', 'Python', 'Pandas', 'Scikit-learn', 'Pygame'].includes(t))) return 'python';
+
+  // Web apps (Node.js/Vite/React projects)
+  if (techStack.some(t => ['React', 'Vue', 'Svelte', 'Next.js', 'Vite', 'Express', 'Node.js', 'Socket.IO'].includes(t))) return 'webapp';
+
+  // Static HTML sites
+  if (files.includes('index.html')) return 'static';
+
+  return 'other';
+}
+
+function getProjectDescription(projectPath, files) {
+  // Try README first
+  const readmeFile = files.find(f => /^readme\.md$/i.test(f) || /^project_overview\.md$/i.test(f));
+  if (readmeFile) {
+    try {
+      const content = fs.readFileSync(path.join(projectPath, readmeFile), 'utf8');
+      // Extract first paragraph after the title
+      const lines = content.split('\n').filter(l => l.trim());
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        // Skip headings, badges, links-only lines
+        if (line.startsWith('#') || line.startsWith('!') || line.startsWith('[') || line.startsWith('---')) continue;
+        // Clean up markdown syntax
+        const clean = line.replace(/[#*`~_\[\]()]/g, '').replace(/<[^>]*>/g, '').trim();
+        if (clean.length > 15) return clean.slice(0, 160) + (clean.length > 160 ? '...' : '');
+      }
+    } catch (e) {}
+  }
+  return null;
+}
+
+function getCategoryIcon(category) {
+  switch (category) {
+    case 'webapp': return 'globe';
+    case 'python': return 'code-2';
+    case 'security': return 'shield';
+    case 'static': return 'file-code';
+    default: return 'package';
+  }
+}
+
 function inspectProject(dirName) {
   const projectPath = path.join(PROJECTS_DIR, dirName);
   const info = {
     name: dirName,
     path: projectPath,
-    icon: '📦',
+    icon: 'package',
+    category: 'other',
+    techStack: [],
+    description: null,
     hasReadme: false,
-    readmeSnippet: '',
     isRunning: false,
     status: 'idle',
     url: null
@@ -32,23 +182,15 @@ function inspectProject(dirName) {
 
   try {
     const files = fs.readdirSync(projectPath);
-    
-    if (files.includes('package.json')) {
-      info.icon = '⬢';
-    } else if (files.includes('app.py') || files.includes('main.py') || files.includes('requirements.txt')) {
-      info.icon = '🐍';
-    } else if (files.includes('index.html')) {
-      info.icon = '🌐';
-    }
+    const techStack = detectTechStack(projectPath, files);
+    const category = detectCategory(dirName, techStack, files);
+    const description = getProjectDescription(projectPath, files);
 
-    const readmeFile = files.find(f => f.toLowerCase() === 'readme.md' || f.toLowerCase() === 'project_overview.md');
-    if (readmeFile) {
-      info.hasReadme = true;
-      try {
-        const readmeContent = fs.readFileSync(path.join(projectPath, readmeFile), 'utf8');
-        info.readmeSnippet = readmeContent.slice(0, 200) + (readmeContent.length > 200 ? '...' : '');
-      } catch (err) {}
-    }
+    info.techStack = techStack;
+    info.category = category;
+    info.icon = getCategoryIcon(category);
+    info.description = description;
+    info.hasReadme = files.some(f => /^readme\.md$/i.test(f) || /^project_overview\.md$/i.test(f));
 
     if (runningProjects.has(dirName)) {
       const state = runningProjects.get(dirName);
@@ -56,41 +198,27 @@ function inspectProject(dirName) {
       info.status = state.status;
       info.url = state.url;
     }
-
   } catch (err) {
-    info.icon = '❌';
+    info.icon = 'alert-circle';
   }
 
   return info;
 }
 
-// Helper to open project in System Explorer and VS Code
-function openSystemTools(projectPath) {
-  exec(`code "${projectPath}"`, (err) => {});
-  exec(`explorer "${projectPath}"`, (err) => {});
-}
-
-// ----------------------------------------------------
+// ============================================================================
 // API ROUTES
-// ----------------------------------------------------
+// ============================================================================
 
+// List all projects
 app.get('/api/projects', (req, res) => {
   try {
     const dirs = fs.readdirSync(PROJECTS_DIR).filter(file => {
-      const fullPath = path.join(PROJECTS_DIR, file);
-      const isDir = fs.statSync(fullPath).isDirectory();
-      
-      // Filter out user-requested excluded projects
-      const isExcluded = [
-        'ProjectHub',
-        'Portfolio',
-        'Riddles',
-        'Night Safe NiZHal',
-        'traffic_sim',
-        'traffic_simulation'
-      ].includes(file);
-      
-      return isDir && !isExcluded;
+      try {
+        const fullPath = path.join(PROJECTS_DIR, file);
+        return fs.statSync(fullPath).isDirectory() && !EXCLUDED_PROJECTS.has(file);
+      } catch (e) {
+        return false;
+      }
     });
 
     const projects = dirs.map(dir => inspectProject(dir));
@@ -100,7 +228,71 @@ app.get('/api/projects', (req, res) => {
   }
 });
 
-// Activate Endpoint (Launches VS Code, Explorer, and starts all services)
+// Get Database state
+app.get('/api/db', (req, res) => {
+  const db = loadDB();
+  res.json(db);
+});
+
+// Update Favorites in Database
+app.post('/api/db/favorites', (req, res) => {
+  const { favorites } = req.body;
+  if (!Array.isArray(favorites)) {
+    return res.status(400).json({ error: 'Favorites must be an array' });
+  }
+  const db = loadDB();
+  db.favorites = favorites;
+  saveDB(db);
+  res.json({ success: true, favorites: db.favorites });
+});
+
+// Get full README content
+app.get('/api/projects/:name/readme', (req, res) => {
+  const { name } = req.params;
+  const projectPath = path.join(PROJECTS_DIR, name);
+
+  if (!fs.existsSync(projectPath)) {
+    return res.status(404).json({ error: 'Project not found' });
+  }
+
+  try {
+    const files = fs.readdirSync(projectPath);
+    const readmeFile = files.find(f => /^readme\.md$/i.test(f) || /^project_overview\.md$/i.test(f));
+
+    if (!readmeFile) {
+      return res.json({ content: null, filename: null });
+    }
+
+    const content = fs.readFileSync(path.join(projectPath, readmeFile), 'utf8');
+    res.json({ content, filename: readmeFile });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to read README', details: err.message });
+  }
+});
+
+// Open project in VS Code
+app.post('/api/projects/:name/open-code', (req, res) => {
+  const { name } = req.params;
+  const projectPath = path.join(PROJECTS_DIR, name);
+  if (!fs.existsSync(projectPath)) {
+    return res.status(404).json({ error: 'Project not found' });
+  }
+  exec(`code "${projectPath}"`, (err) => {});
+  res.json({ success: true, message: 'VS Code command triggered' });
+});
+
+// Open project in File Explorer
+app.post('/api/projects/:name/open-explorer', (req, res) => {
+  const { name } = req.params;
+  const projectPath = path.join(PROJECTS_DIR, name);
+  if (!fs.existsSync(projectPath)) {
+    return res.status(404).json({ error: 'Project not found' });
+  }
+  exec(`explorer "${projectPath}"`, (err) => {});
+  res.json({ success: true, message: 'Explorer command triggered' });
+});
+
+// Activate Endpoint (Starts all services)
 app.post('/api/projects/:name/activate', async (req, res) => {
   const { name } = req.params;
   const projectPath = path.join(PROJECTS_DIR, name);
@@ -109,20 +301,23 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     return res.status(404).json({ error: 'Project not found' });
   }
 
-  // 1. Instantly trigger VS Code & Explorer in background
-  openSystemTools(projectPath);
+  // Record launch in DB
+  const db = loadDB();
+  const currentStats = db.launchStats[name] || { launchCount: 0 };
+  db.launchStats[name] = {
+    launchCount: currentStats.launchCount + 1,
+    lastLaunched: new Date().toISOString()
+  };
+  saveDB(db);
 
-  // If already running, re-trigger browser open
+  // If already running, return state
   if (runningProjects.has(name)) {
     const state = runningProjects.get(name);
-    if (state.status === 'running' && state.url) {
-      exec(`start ${state.url}`);
-    }
     return res.json({ success: true, message: 'Project is already active', url: state.url, status: state.status });
   }
 
-  const logs = [`[ProjectHub] Activating workspace for ${name}...`, `[ProjectHub] Launched VS Code & File Explorer.`];
-  
+  const logs = [`[ProjectHub] Activating workspace server for ${name}...`];
+
   const projectState = {
     childProcesses: [],
     logs,
@@ -139,7 +334,7 @@ app.post('/api/projects/:name/activate', async (req, res) => {
   const files = fs.readdirSync(projectPath);
   const hasPackageJson = files.includes('package.json');
   const hasNodeModules = files.includes('node_modules');
-  
+
   // Subfolder detection (server/backend)
   const hasServerDir = files.includes('server') && fs.statSync(path.join(projectPath, 'server')).isDirectory();
   const hasBackendDir = files.includes('backend') && fs.statSync(path.join(projectPath, 'backend')).isDirectory();
@@ -148,9 +343,9 @@ app.post('/api/projects/:name/activate', async (req, res) => {
   // Python configurations
   const hasVenv = files.includes('venv') && fs.existsSync(path.join(projectPath, 'venv', 'Scripts', 'python.exe'));
   const hasDotVenv = files.includes('.venv') && fs.existsSync(path.join(projectPath, '.venv', 'Scripts', 'python.exe'));
-  const pythonBin = hasDotVenv 
+  const pythonBin = hasDotVenv
     ? path.join(projectPath, '.venv', 'Scripts', 'python.exe')
-    : hasVenv 
+    : hasVenv
       ? path.join(projectPath, 'venv', 'Scripts', 'python.exe')
       : 'python';
   const pipBin = hasDotVenv
@@ -166,24 +361,31 @@ app.post('/api/projects/:name/activate', async (req, res) => {
   const hasIndexHtml = files.includes('index.html');
   const isWindows = process.platform === 'win32';
 
-  // Port detector and browser opener
+  // Helper to strip ANSI codes
+  const stripAnsi = (str) => {
+    return str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+  };
+
+  // Port detector
   const parseLogsForPortAndOpen = (dataStr) => {
     if (projectState.url) return;
 
-    // Check localhost, 127.0.0.1, 0.0.0.0, or specific url messages
-    const portMatch = dataStr.match(/(?:localhost|127\.0\.0\.1|0\.0\.0\.0):(\d+)/) ||
-                      dataStr.match(/port\s*(?:is|on)?\s*:?\s*(\d+)/i) ||
-                      dataStr.match(/listening on\s*:?\s*(\d+)/i) ||
-                      dataStr.match(/http:\/\/localhost:(\d+)/i) ||
-                      dataStr.match(/Network:\s*http:\/\/192\.\d+\.\d+\.\d+:(\d+)/i);
-                      
+    const cleanStr = stripAnsi(dataStr);
+
+    const portMatch = cleanStr.match(/(?:localhost|127\.0\.0\.1|0\.0\.0\.0):(\d+)/) ||
+                      cleanStr.match(/port\s*(?:is|on)?\s*:?\s*(\d+)/i) ||
+                      cleanStr.match(/listening on\s*:?\s*(\d+)/i) ||
+                      cleanStr.match(/http:\/\/localhost:(\d+)/i) ||
+                      cleanStr.match(/Network:\s*http:\/\/192\.\d+\.\d+\.\d+:(\d+)/i);
+
     if (portMatch) {
-      projectState.port = parseInt(portMatch[1]);
-      projectState.url = `http://127.0.0.1:${projectState.port}`;
-      projectState.status = 'running';
-      projectState.logs.push(`[ProjectHub] Detected active port. Opening web application: ${projectState.url}`);
-      
-      exec(`start ${projectState.url}`);
+      const port = parseInt(portMatch[1]);
+      if (port > 0 && port <= 65535 && port !== 4200) {
+        projectState.port = port;
+        projectState.url = `http://127.0.0.1:${port}`;
+        projectState.status = 'running';
+        projectState.logs.push(`[ProjectHub] Detected active port: ${projectState.url}`);
+      }
     }
   };
 
@@ -206,7 +408,9 @@ app.post('/api/projects/:name/activate', async (req, res) => {
         const t = line.trim();
         if (t) {
           projectState.logs.push(prefix ? `[${prefix}] ${t}` : t);
-          parseLogsForPortAndOpen(t);
+          if (prefix !== 'Backend Server') {
+            parseLogsForPortAndOpen(t);
+          }
         }
       });
       if (projectState.logs.length > 500) projectState.logs = projectState.logs.slice(-500);
@@ -218,7 +422,9 @@ app.post('/api/projects/:name/activate', async (req, res) => {
         const t = line.trim();
         if (t) {
           projectState.logs.push(prefix ? `[${prefix} stderr] ${t}` : `[stderr] ${t}`);
-          parseLogsForPortAndOpen(t);
+          if (prefix !== 'Backend Server') {
+            parseLogsForPortAndOpen(t);
+          }
         }
       });
       if (projectState.logs.length > 500) projectState.logs = projectState.logs.slice(-500);
@@ -226,9 +432,7 @@ app.post('/api/projects/:name/activate', async (req, res) => {
 
     child.on('close', (code) => {
       projectState.logs.push(`[ProjectHub] Process ${prefix || cmd} exited with code ${code}`);
-      
-      // Failsafe fallback: If the process failed to run (code !== 0) and we don't have a port URL,
-      // boot the static file server so the project can still be loaded!
+
       if (code !== 0 && !projectState.url && projectState.status !== 'idle') {
         projectState.logs.push(`[ProjectHub] Process failed. Falling back to static web hosting...`);
         launchStaticAppServer();
@@ -242,8 +446,7 @@ app.post('/api/projects/:name/activate', async (req, res) => {
 
     child.on('error', (err) => {
       projectState.logs.push(`[ProjectHub] Process ${prefix || cmd} error: ${err.message}`);
-      
-      // Failsafe fallback on startup error
+
       if (!projectState.url && projectState.status !== 'idle') {
         projectState.logs.push(`[ProjectHub] Launch failed. Falling back to static web hosting...`);
         launchStaticAppServer();
@@ -256,7 +459,7 @@ app.post('/api/projects/:name/activate', async (req, res) => {
       projectState.status = 'running';
       const staticApp = express();
       staticApp.use(express.static(targetDir));
-      
+
       const staticPort = 8000 + Math.floor(Math.random() * 1000);
       const serverInstance = staticApp.listen(staticPort, '127.0.0.1', () => {
         const url = `http://127.0.0.1:${staticPort}`;
@@ -265,8 +468,6 @@ app.post('/api/projects/:name/activate', async (req, res) => {
         projectState.type = 'static';
         projectState.serverInstance = serverInstance;
         projectState.logs.push(`[ProjectHub] Served project as static site: ${url}`);
-        
-        exec(`start ${url}`);
       });
 
       serverInstance.on('error', (err) => {
@@ -284,7 +485,7 @@ app.post('/api/projects/:name/activate', async (req, res) => {
   const runNpmInstall = (cwd, callback) => {
     projectState.logs.push(`[ProjectHub] Running "npm install" in ${path.basename(cwd)}...`);
     projectState.status = 'installing';
-    
+
     const installer = spawn('npm', ['install'], { cwd, shell: isWindows });
     projectState.childProcesses.push(installer);
 
@@ -311,7 +512,6 @@ app.post('/api/projects/:name/activate', async (req, res) => {
 
   // Main launcher execution tree
   if (hasPackageJson) {
-    // 1. STANDARD NPM / VITE FRONTEND PROJECT
     const startRootApp = () => {
       try {
         const pkg = JSON.parse(fs.readFileSync(path.join(projectPath, 'package.json'), 'utf8'));
@@ -340,7 +540,6 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     const checkAndStartSubfolderServer = () => {
       startRootApp();
 
-      // Check if subfolder has package.json (e.g. Chatting application/server)
       if (serverPath && fs.existsSync(path.join(serverPath, 'package.json'))) {
         const hasSubModules = fs.existsSync(path.join(serverPath, 'node_modules'));
         const startSubServer = () => {
@@ -371,12 +570,11 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     startAppWithDependencies();
 
   } else if (files.includes('server.js') || files.includes('app.js') || files.includes('index.js')) {
-    // 2. NODE JS CODE PROJECT WITHOUT package.json (e.g. Chatbot)
     const scriptFile = files.includes('server.js') ? 'server.js' : (files.includes('app.js') ? 'app.js' : 'index.js');
     const scriptContent = fs.readFileSync(path.join(projectPath, scriptFile), 'utf8');
-    
+
     const needsExpress = scriptContent.includes("require('express')") || scriptContent.includes('require("express")');
-    
+
     const runScript = () => {
       spawnProcess('node', [scriptFile]);
     };
@@ -384,7 +582,7 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     if (needsExpress) {
       projectState.logs.push('[ProjectHub] Node.js script detected express require but no package.json. Initializing basic setup...');
       projectState.status = 'installing';
-      
+
       fs.writeFileSync(path.join(projectPath, 'package.json'), JSON.stringify({
         name: name.toLowerCase(),
         version: '1.0.0',
@@ -400,13 +598,12 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     }
 
   } else if (hasManagePy || hasAppPy || hasMainPy || hasRunPy || files.includes('requirements.txt')) {
-    // 3. PYTHON PROJECT (Django, Flask, Streamlit, or script)
     projectState.status = 'installing';
 
     const getPythonImports = () => {
       const imports = new Set();
       const pyFiles = files.filter(f => f.endsWith('.py'));
-      
+
       pyFiles.forEach(pf => {
         try {
           const content = fs.readFileSync(path.join(projectPath, pf), 'utf8');
@@ -430,9 +627,8 @@ app.post('/api/projects/:name/activate', async (req, res) => {
 
     const startPythonExecution = () => {
       projectState.status = 'running';
-      
+
       if (hasManagePy) {
-        // Run Django server on a random port
         const djPort = 8000 + Math.floor(Math.random() * 1000);
         spawnProcess(pythonBin, ['manage.py', 'runserver', `127.0.0.1:${djPort}`]);
       } else if (hasRunPy) {
@@ -441,18 +637,15 @@ app.post('/api/projects/:name/activate', async (req, res) => {
         const targetFile = hasAppPy ? 'app.py' : 'main.py';
         try {
           const content = fs.readFileSync(path.join(projectPath, targetFile), 'utf8');
-          
+
           if (content.includes('import streamlit') || content.includes('streamlit')) {
-            // Run Streamlit on random port and headless
             const stPort = 8500 + Math.floor(Math.random() * 1000);
             spawnProcess(pythonBin, ['-m', 'streamlit', 'run', targetFile, '--server.port', stPort.toString(), '--server.headless', 'true']);
           } else if (content.includes('FastAPI') || content.includes('import fastapi')) {
-            // Run FastAPI/uvicorn on dynamic port
             const pyPort = 8000 + Math.floor(Math.random() * 1000);
             const moduleName = targetFile.replace('.py', '');
             spawnProcess(pythonBin, ['-m', 'uvicorn', `${moduleName}:app`, '--host', '127.0.0.1', '--port', pyPort.toString()]);
           } else {
-            // Standard script or Flask with built-in app.run()
             spawnProcess(pythonBin, [targetFile]);
           }
         } catch (e) {
@@ -465,10 +658,10 @@ app.post('/api/projects/:name/activate', async (req, res) => {
 
     const installPythonDeps = () => {
       if (hasReqFile) {
-        projectState.logs.push('[ProjectHub] Installing requirements.txt dependencies via pip (this may take a minute)...');
+        projectState.logs.push('[ProjectHub] Installing requirements.txt dependencies via pip...');
         const pip = spawn(pipBin, ['install', '-r', 'requirements.txt'], { cwd: projectPath, shell: isWindows });
         projectState.childProcesses.push(pip);
-        
+
         pip.stdout.on('data', (d) => {
           d.toString().split('\n').forEach(l => { if (l.trim()) projectState.logs.push(`[pip] ${l.trim()}`); });
         });
@@ -479,7 +672,7 @@ app.post('/api/projects/:name/activate', async (req, res) => {
         projectState.logs.push(`[ProjectHub] Detected imports. Installing: ${packagesToInstall.join(', ')}...`);
         const pip = spawn(pipBin, ['install', ...packagesToInstall], { cwd: projectPath, shell: isWindows });
         projectState.childProcesses.push(pip);
-        
+
         pip.on('close', () => {
           startPythonExecution();
         });
@@ -491,10 +684,8 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     installPythonDeps();
 
   } else if (hasIndexHtml) {
-    // 4. STATIC SITE
     launchStaticAppServer();
   } else {
-    // 5. ANY OTHER GENERAL FOLDER FALLBACK
     launchStaticAppServer();
   }
 
@@ -548,21 +739,6 @@ app.post('/api/projects/:name/stop', (req, res) => {
 
   runningProjects.delete(name);
   res.json({ success: true, message: 'Project stopped' });
-});
-
-// Simplified stats API
-app.get('/api/stats', (req, res) => {
-  try {
-    const dirs = fs.readdirSync(PROJECTS_DIR).filter(file => {
-      return fs.statSync(path.join(PROJECTS_DIR, file)).isDirectory() && file !== 'ProjectHub';
-    });
-    res.json({
-      totalProjects: dirs.length,
-      runningProjects: runningProjects.size
-    });
-  } catch (err) {
-    res.status(500).json({ error: 'Stats error' });
-  }
 });
 
 // Serve frontend template

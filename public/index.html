@@ -4,58 +4,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Praveen's HUB</title>
+    <title>Praveen's ProjectHub — Developer Dashboard</title>
+    <meta name="description" content="A premium developer cockpit for organizing, exploring, and launching all local projects.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Outfit:wght@100..900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="dark-mode">
-    <div class="background-decorations">
-        <div class="glow-orb orb-1"></div>
-        <div class="glow-orb orb-2"></div>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-mesh">
+        <div class="mesh-gradient"></div>
+        <div class="mesh-grid"></div>
     </div>
 
-    <div class="dashboard-container">
-        <!-- HEADER -->
-        <header class="main-header">
-            <div class="logo-area">
-                <div class="logo-icon">
-                    <i data-lucide="layers"></i>
+    <!-- Command Palette (Ctrl+K) -->
+    <div class="cmd-overlay" id="cmd-overlay">
+        <div class="cmd-palette" id="cmd-palette">
+            <div class="cmd-search-row">
+                <i data-lucide="search"></i>
+                <input type="text" id="cmd-input" placeholder="Search projects, type a command..." autocomplete="off" spellcheck="false">
+                <kbd>ESC</kbd>
+            </div>
+            <div class="cmd-results" id="cmd-results">
+                <div class="cmd-empty">
+                    <i data-lucide="sparkles"></i>
+                    <span>Type to search across all projects...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Drawer -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <aside class="detail-drawer" id="detail-drawer">
+        <div class="drawer-header">
+            <div class="drawer-title-area">
+                <div class="drawer-icon" id="drawer-icon">
+                    <i data-lucide="package"></i>
                 </div>
                 <div>
-                    <h1>ProjectHub</h1>
-                    <p class="subtitle">Instant Local Application Cockpit</p>
+                    <h2 id="drawer-title">Project Name</h2>
+                    <div class="drawer-meta" id="drawer-meta"></div>
+                </div>
+            </div>
+            <button class="drawer-close-btn" id="drawer-close" title="Close">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+
+        <div class="drawer-actions" id="drawer-actions"></div>
+
+        <div class="drawer-tabs">
+            <button class="drawer-tab active" data-tab="overview">Overview</button>
+            <button class="drawer-tab" data-tab="logs">Live Logs</button>
+        </div>
+
+        <div class="drawer-content">
+            <div class="drawer-panel active" id="panel-overview">
+                <div class="readme-content" id="drawer-readme">
+                    <div class="readme-loading">
+                        <div class="spinner"></div>
+                        <span>Loading README...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="drawer-panel" id="panel-logs">
+                <div class="logs-terminal" id="drawer-terminal">
+                    <div class="terminal-line system">[ProjectHub] No active server. Start the project to see live logs.</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Layout -->
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-mark">
+                    <i data-lucide="layers"></i>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-title">ProjectHub</span>
+                    <span class="logo-sub">Developer Cockpit</span>
                 </div>
             </div>
 
-            <button class="btn btn-text refresh-btn" id="btn-refresh">
-                <i data-lucide="refresh-cw"></i> Rescan Projects
-            </button>
-        </header>
+            <div class="sidebar-nav">
+                <button class="nav-item active" data-filter="all" id="nav-all">
+                    <i data-lucide="layout-grid"></i>
+                    <span>All Projects</span>
+                    <span class="nav-count" id="count-all">0</span>
+                </button>
+                <button class="nav-item" data-filter="favorites" id="nav-favorites">
+                    <i data-lucide="star"></i>
+                    <span>Favorites</span>
+                    <span class="nav-count" id="count-favorites">0</span>
+                </button>
 
-        <!-- FILTERS & CONTROLS -->
-        <section class="controls-bar">
-            <div class="search-box">
-                <i data-lucide="search" class="search-icon"></i>
-                <input type="text" id="search-input" placeholder="Search workspace projects...">
+                <div class="nav-divider"></div>
+                <span class="nav-label">Categories</span>
+
+                <button class="nav-item" data-filter="webapp" id="nav-webapp">
+                    <i data-lucide="globe"></i>
+                    <span>Web Apps</span>
+                    <span class="nav-count" id="count-webapp">0</span>
+                </button>
+                <button class="nav-item" data-filter="python" id="nav-python">
+                    <i data-lucide="code-2"></i>
+                    <span>Python</span>
+                    <span class="nav-count" id="count-python">0</span>
+                </button>
+                <button class="nav-item" data-filter="security" id="nav-security">
+                    <i data-lucide="shield"></i>
+                    <span>Security</span>
+                    <span class="nav-count" id="count-security">0</span>
+                </button>
+                <button class="nav-item" data-filter="static" id="nav-static">
+                    <i data-lucide="file-code"></i>
+                    <span>Static Sites</span>
+                    <span class="nav-count" id="count-static">0</span>
+                </button>
+
+                <div class="nav-divider"></div>
+                <span class="nav-label">Status</span>
+
+                <button class="nav-item" data-filter="running" id="nav-running">
+                    <i data-lucide="activity"></i>
+                    <span>Running</span>
+                    <span class="nav-count nav-count-active" id="count-running">0</span>
+                </button>
             </div>
-        </section>
 
-        <!-- MAIN PROJECT GRID -->
-        <main class="projects-grid-section">
-            <div class="grid-header">
-                <h2>All Workspace Projects (<span id="filtered-count">0</span>)</h2>
+            <div class="sidebar-footer">
+                <div class="shortcut-hint">
+                    <kbd>Ctrl</kbd><span>+</span><kbd>K</kbd>
+                    <span class="hint-text">Quick Search</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar">
+                    <i data-lucide="panel-left"></i>
+                </button>
+
+                <div class="topbar-search">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Filter projects...">
+                </div>
+
+                <div class="topbar-actions">
+                    <button class="topbar-btn" id="btn-refresh" title="Rescan projects">
+                        <i data-lucide="refresh-cw"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Bar -->
+            <section class="stats-bar" id="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-icon stat-total">
+                        <i data-lucide="folder"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-total">0</span>
+                        <span class="stat-label">Projects</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-active">
+                        <i data-lucide="activity"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-running">0</span>
+                        <span class="stat-label">Running</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-web">
+                        <i data-lucide="globe"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-web">0</span>
+                        <span class="stat-label">Web Apps</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-py">
+                        <i data-lucide="code-2"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-python">0</span>
+                        <span class="stat-label">Python</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section Title -->
+            <div class="section-header" id="section-header">
+                <h1 id="section-title">All Projects</h1>
+                <span class="section-count" id="section-count">0 projects</span>
             </div>
 
+            <!-- Project Grid -->
             <div class="projects-grid" id="projects-grid">
-                <div class="loading-placeholder">
+                <div class="loading-state">
                     <div class="spinner"></div>
                     <p>Scanning workspace directories...</p>
                 </div>
@@ -63,7 +225,7 @@
         </main>
     </div>
 
-    <!-- TOAST NOTIFICATION -->
+    <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
     <script src="app.js"></script>

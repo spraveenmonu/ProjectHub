@@ -1,0 +1,42 @@
+{
+  "favorites": [],
+  "launchStats": {
+    "Chatbot": {
+      "launchCount": 2,
+      "lastLaunched": "2026-08-10T05:15:59.831Z"
+    },
+    "AI based phishing url detector": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-10T05:05:06.140Z"
+    },
+    "Password": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-10T05:05:43.819Z"
+    },
+    "Ransomeware simulator": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-10T05:05:50.075Z"
+    },
+    "Riddles": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-10T05:06:17.189Z"
+    },
+    "Weather Application": {
+      "launchCount": 2,
+      "lastLaunched": "2026-08-10T05:06:40.581Z"
+    },
+    "URL Shortner": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-10T05:07:17.788Z"
+    },
+    "Portfolio": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-10T05:08:28.347Z"
+    },
+    "Disease Recommedation": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-10T05:14:35.123Z"
+    }
+  },
+  "projectOverrides": {}
+}
