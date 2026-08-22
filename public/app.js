@@ -228,10 +228,15 @@ function startCardLogPolling(name) {
             }
 
             // Status change detection
-            if (data.status !== 'running' && data.status !== 'installing') {
-                clearInterval(logPollIntervals.get(name));
-                logPollIntervals.delete(name);
-                fetchProjects();
+            if (data.status === 'failed') {
+              clearInterval(logPollIntervals.get(name));
+              logPollIntervals.delete(name);
+              showToast(`"${name}" failed to start. Check logs.`, 'error');
+              fetchProjects();
+            } else if (data.status !== 'running' && data.status !== 'installing') {
+              clearInterval(logPollIntervals.get(name));
+              logPollIntervals.delete(name);
+              fetchProjects();
             } else {
                 const p = projects.find(proj => proj.name === name);
                 if (p && !p.url && data.url) {
@@ -308,7 +313,7 @@ function renderProjectsGrid() {
     }
 
     projectsGrid.innerHTML = filtered.map((p, i) => {
-        const isRunning = p.status === 'running' || p.status === 'installing';
+        const isRunning = p.status === 'running' || p.status === 'installing' || p.status === 'failed';
         const isFav = favorites.includes(p.name);
         const cardClass = isRunning ? `project-card ${p.status}` : 'project-card';
         const safeName = escapeAttr(p.name);
@@ -317,6 +322,7 @@ function renderProjectsGrid() {
         let badge = '';
         if (p.status === 'running') badge = `<span class="status-badge badge-running">Active</span>`;
         else if (p.status === 'installing') badge = `<span class="status-badge badge-installing">Starting</span>`;
+        else if (p.status === 'failed') badge = `<span class="status-badge badge-failed">Failed</span>`;
 
         // Primary tag (just one)
         const primaryTag = (p.techStack && p.techStack.length > 0) ? `<span class="tech-tag">${escapeHtml(p.techStack[0])}</span>` : '';

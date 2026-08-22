@@ -6,8 +6,8 @@
       "lastLaunched": "2026-08-10T05:15:59.831Z"
     },
     "AI based phishing url detector": {
-      "launchCount": 1,
-      "lastLaunched": "2026-08-10T05:05:06.140Z"
+      "launchCount": 2,
+      "lastLaunched": "2026-08-17T04:09:15.981Z"
     },
     "Password": {
       "launchCount": 1,
@@ -36,6 +36,30 @@
     "Disease Recommedation": {
       "launchCount": 1,
       "lastLaunched": "2026-08-10T05:14:35.123Z"
+    },
+    "Malware detection using signature": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-17T04:05:47.527Z"
+    },
+    "Movio": {
+      "launchCount": 2,
+      "lastLaunched": "2026-08-17T04:07:48.614Z"
+    },
+    "Expense Tracker": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-17T04:09:53.072Z"
+    },
+    "Cyber Attacks": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-22T03:48:09.832Z"
+    },
+    "Chatting application": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-22T03:48:27.550Z"
+    },
+    "House Recommendation": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-22T03:48:47.578Z"
     }
   },
   "projectOverrides": {}

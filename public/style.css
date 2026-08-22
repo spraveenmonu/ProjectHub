@@ -810,6 +810,12 @@ body {
     animation: pulse 2s ease-in-out infinite;
 }
 
+.badge-failed {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.6; }

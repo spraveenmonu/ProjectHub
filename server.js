@@ -326,6 +326,7 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     type: 'unknown',
     serverInstance: null,
     url: null,
+    backendUrl: null,
     status: 'installing'
   };
 
@@ -367,8 +368,11 @@ app.post('/api/projects/:name/activate', async (req, res) => {
   };
 
   // Port detector
-  const parseLogsForPortAndOpen = (dataStr) => {
-    if (projectState.url) return;
+  const parseLogsForPortAndOpen = (dataStr, isBackend = false) => {
+    // For frontend: skip if we already have a URL
+    // For backend: store separately so we can still track it
+    if (!isBackend && projectState.url) return;
+    if (isBackend && projectState.backendUrl) return;
 
     const cleanStr = stripAnsi(dataStr);
 
@@ -376,15 +380,32 @@ app.post('/api/projects/:name/activate', async (req, res) => {
                       cleanStr.match(/port\s*(?:is|on)?\s*:?\s*(\d+)/i) ||
                       cleanStr.match(/listening on\s*:?\s*(\d+)/i) ||
                       cleanStr.match(/http:\/\/localhost:(\d+)/i) ||
-                      cleanStr.match(/Network:\s*http:\/\/192\.\d+\.\d+\.\d+:(\d+)/i);
+                      cleanStr.match(/https?:\/\/[\w.-]+:(\d+)/i) ||
+                      cleanStr.match(/Network:\s*http:\/\/192\.\d+\.\d+\.\d+:(\d+)/i) ||
+                      cleanStr.match(/running\s+(?:on|at)\s+.*?(\d{4,5})/i) ||
+                      cleanStr.match(/started\s+(?:on|at)\s+.*?(\d{4,5})/i) ||
+                      cleanStr.match(/ready\s+(?:on|at|in)\s+.*?(?:localhost|127\.0\.0\.1|0\.0\.0\.0):(\d+)/i) ||
+                      cleanStr.match(/serving\s+(?:on|at)\s+.*?(\d{4,5})/i);
 
     if (portMatch) {
       const port = parseInt(portMatch[1]);
       if (port > 0 && port <= 65535 && port !== 4200) {
-        projectState.port = port;
-        projectState.url = `http://127.0.0.1:${port}`;
-        projectState.status = 'running';
-        projectState.logs.push(`[ProjectHub] Detected active port: ${projectState.url}`);
+        if (isBackend) {
+          projectState.backendUrl = `http://127.0.0.1:${port}`;
+          projectState.status = 'running';
+          projectState.logs.push(`[ProjectHub] Detected backend server port: ${projectState.backendUrl}`);
+          // If no frontend URL yet, use backend URL as the primary URL
+          if (!projectState.url) {
+            projectState.port = port;
+            projectState.url = projectState.backendUrl;
+            projectState.logs.push(`[ProjectHub] Using backend URL as primary: ${projectState.url}`);
+          }
+        } else {
+          projectState.port = port;
+          projectState.url = `http://127.0.0.1:${port}`;
+          projectState.status = 'running';
+          projectState.logs.push(`[ProjectHub] Detected active port: ${projectState.url}`);
+        }
       }
     }
   };
@@ -394,10 +415,17 @@ app.post('/api/projects/:name/activate', async (req, res) => {
     projectState.type = 'process';
     projectState.status = 'running';
 
+    const isBackend = prefix === 'Backend Server';
+
+    // Don't strip PORT — let the child project use its own configured port.
+    // Only ensure it doesn't accidentally bind to ProjectHub's port (4200).
+    const childEnv = { ...process.env };
+    delete childEnv.PORT; // Remove inherited PORT so each project uses its own default
+
     const child = spawn(cmd, args, {
       cwd,
       shell: isWindows,
-      env: { ...process.env, PORT: undefined }
+      env: childEnv
     });
 
     projectState.childProcesses.push(child);
@@ -408,9 +436,8 @@ app.post('/api/projects/:name/activate', async (req, res) => {
         const t = line.trim();
         if (t) {
           projectState.logs.push(prefix ? `[${prefix}] ${t}` : t);
-          if (prefix !== 'Backend Server') {
-            parseLogsForPortAndOpen(t);
-          }
+          // Parse ALL process output for port detection, including backend
+          parseLogsForPortAndOpen(t, isBackend);
         }
       });
       if (projectState.logs.length > 500) projectState.logs = projectState.logs.slice(-500);
@@ -422,9 +449,8 @@ app.post('/api/projects/:name/activate', async (req, res) => {
         const t = line.trim();
         if (t) {
           projectState.logs.push(prefix ? `[${prefix} stderr] ${t}` : `[stderr] ${t}`);
-          if (prefix !== 'Backend Server') {
-            parseLogsForPortAndOpen(t);
-          }
+          // Parse stderr too — many dev servers (Vite, Next.js) output URLs to stderr
+          parseLogsForPortAndOpen(t, isBackend);
         }
       });
       if (projectState.logs.length > 500) projectState.logs = projectState.logs.slice(-500);
@@ -434,12 +460,40 @@ app.post('/api/projects/:name/activate', async (req, res) => {
       projectState.logs.push(`[ProjectHub] Process ${prefix || cmd} exited with code ${code}`);
 
       if (code !== 0 && !projectState.url && projectState.status !== 'idle') {
-        projectState.logs.push(`[ProjectHub] Process failed. Falling back to static web hosting...`);
-        launchStaticAppServer();
+        // Process failed and no URL was ever detected — try static fallback
+        const hasIndexHtml = fs.existsSync(path.join(projectPath, 'index.html')) ||
+                             fs.existsSync(path.join(projectPath, 'public', 'index.html')) ||
+                             fs.existsSync(path.join(projectPath, 'dist', 'index.html')) ||
+                             fs.existsSync(path.join(projectPath, 'build', 'index.html'));
+        if (hasIndexHtml) {
+          projectState.logs.push(`[ProjectHub] Process failed. Falling back to static web hosting...`);
+          // Try to serve from dist/build folders if they exist
+          const staticDir = fs.existsSync(path.join(projectPath, 'dist')) ? path.join(projectPath, 'dist') :
+                            fs.existsSync(path.join(projectPath, 'build')) ? path.join(projectPath, 'build') :
+                            projectPath;
+          launchStaticAppServer(staticDir);
+        } else {
+          projectState.logs.push(`[ProjectHub] Process failed with code ${code}. No static fallback available.`);
+          projectState.status = 'failed';
+        }
       } else {
+        // Process exited with code 0 or URL was detected
         const activeCount = projectState.childProcesses.filter(c => c.pid !== child.pid && c.exitCode === null).length;
         if (activeCount === 0) {
-          projectState.status = 'idle';
+          // Only mark idle if no URL was detected (server never started)
+          // If URL exists, the server ran and completed — keep status as 'running'
+          // only if it's a static server still active
+          if (projectState.url && projectState.type === 'static' && projectState.serverInstance) {
+            // Static server is still running, keep status
+            projectState.status = 'running';
+          } else if (!projectState.url) {
+            projectState.status = 'idle';
+          } else {
+            // URL was detected but all processes exited — server has stopped
+            projectState.status = 'idle';
+            projectState.url = null;
+            projectState.backendUrl = null;
+          }
         }
       }
     });
@@ -612,7 +666,8 @@ app.post('/api/projects/:name/activate', async (req, res) => {
             imports.add('fastapi');
             imports.add('uvicorn');
           }
-          if (content.includes('import Flask') || content.includes('from flask')) imports.add('Flask');
+          if (content.includes('import flask') || content.includes('from flask') || content.includes('import Flask') || content.includes('from Flask')) imports.add('Flask');
+          if (content.includes('import django') || content.includes('from django')) imports.add('django');
           if (content.includes('import pygame') || content.includes('from pygame')) imports.add('pygame');
           if (content.includes('import pandas') || content.includes('from pandas')) imports.add('pandas');
           if (content.includes('import sklearn') || content.includes('from sklearn')) imports.add('scikit-learn');
@@ -638,13 +693,16 @@ app.post('/api/projects/:name/activate', async (req, res) => {
         try {
           const content = fs.readFileSync(path.join(projectPath, targetFile), 'utf8');
 
-          if (content.includes('import streamlit') || content.includes('streamlit')) {
+          if (content.includes('import streamlit') || content.includes('from streamlit') || content.includes('streamlit')) {
             const stPort = 8500 + Math.floor(Math.random() * 1000);
             spawnProcess(pythonBin, ['-m', 'streamlit', 'run', targetFile, '--server.port', stPort.toString(), '--server.headless', 'true']);
-          } else if (content.includes('FastAPI') || content.includes('import fastapi')) {
+          } else if (content.includes('FastAPI') || content.includes('import fastapi') || content.includes('from fastapi')) {
             const pyPort = 8000 + Math.floor(Math.random() * 1000);
             const moduleName = targetFile.replace('.py', '');
             spawnProcess(pythonBin, ['-m', 'uvicorn', `${moduleName}:app`, '--host', '127.0.0.1', '--port', pyPort.toString()]);
+          } else if (content.includes('import flask') || content.includes('from flask') || content.includes('Flask')) {
+            // Flask apps — run them directly, Flask will start its own dev server
+            spawnProcess(pythonBin, [targetFile]);
           } else {
             spawnProcess(pythonBin, [targetFile]);
           }
@@ -703,6 +761,7 @@ app.get('/api/projects/:name/logs', (req, res) => {
     isRunning: state.childProcesses.some(c => c.exitCode === null) || state.type === 'static',
     status: state.status,
     url: state.url,
+    backendUrl: state.backendUrl || null,
     port: state.port,
     logs: state.logs
   });
