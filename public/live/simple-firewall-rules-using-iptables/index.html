@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Global Status Bar -->
+    <div class="top-bar">
+        <div class="top-bar-stat">
+            <div class="dot pulse dot-clean"></div>
+            <span>System: <strong class="clr-clean">Online</strong></span>
+        </div>
+        <div class="top-bar-stat">
+            <span>Blocked: <strong id="tb-blocked" class="clr-crit">2</strong></span>
+        </div>
+        <div class="top-bar-stat">
+            <span>Events/min: <strong id="tb-epm" class="clr-high">0</strong></span>
+        </div>
+        <div class="top-bar-stat">
+            <span>Uptime: <strong id="tb-uptime" class="clr-heading">00:00:00</strong></span>
+        </div>
+        <div class="top-bar-right">
+            <span id="tb-clock"></span>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="nav-rail">
+            <div class="brand">
+                <div class="brand-icon">🛡️</div>
+                <div class="brand-text">Sentinel</div>
+                <div class="brand-ver">BETA</div>
+            </div>
+
+            <div class="nav-section-label">Monitoring</div>
+            <nav>
+                <div class="nav-btn active" id="nav-dash" onclick="showView('dash')">
+                    📊 Dashboard
+                    <span class="nav-badge badge-live" id="nav-badge-dash">LIVE</span>
+                </div>
+                <div class="nav-btn" id="nav-recon" onclick="showView('recon')">
+                    📡 Recon Engine
+                </div>
+            </nav>
+
+            <div class="nav-section-label">Defense</div>
+            <nav>
+                <div class="nav-btn" id="nav-def" onclick="showView('def')">
+                    ⚔️ Perimeter Def
+                    <span class="nav-badge badge-rules" id="nav-badge-rules">2</span>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-meter-label">
+                    <span>CPU Load</span>
+                    <span id="cpu-val">23%</span>
+                </div>
+                <div class="sidebar-meter">
+                    <div class="sidebar-meter-fill" id="cpu-bar"></div>
+                </div>
+                <div class="sidebar-meter-label">
+                    <span>Memory</span>
+                    <span id="mem-val">61%</span>
+                </div>
+                <div class="sidebar-meter">
+                    <div class="sidebar-meter-fill" id="mem-bar"></div>
+                </div>
+                <div class="sidebar-meter-label">
+                    <span>Network I/O</span>
+                    <span id="net-val">12 MB/s</span>
+                </div>
+                <div class="sidebar-meter">
+                    <div class="sidebar-meter-fill" id="net-bar"></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="viewport">
+
+            <!-- ═══ DASHBOARD ═══ -->
+            <section id="view-dash" class="view-section active animate-in">
+                <div class="sentinel-layout">
+                    <div class="sentinel-main">
+                        <!-- Control Bar -->
+                        <div class="control-bar">
+                            <button class="btn-ctrl" id="btn-toggle" onclick="toggleStream()">
+                                <span id="scan-icon">⏸</span> <span id="scan-text">PAUSE</span>
+                            </button>
+                            <button class="btn-ctrl" onclick="clearStream()">CLEAR</button>
+                            <button class="btn-ctrl btn-export" onclick="exportScript()">EXPORT .SH</button>
+                            <input type="text" class="filter-input" id="stream-filter"
+                                placeholder="Filter by IP, type, severity..." oninput="filterStream()"
+                                aria-label="Filter attack stream">
+                        </div>
+
+                        <!-- Live Traffic Graph -->
+                        <div class="traffic-graph-wrap">
+                            <div class="chart-title traffic-graph-title">Network Traffic (packets/sec)</div>
+                            <canvas id="traffic-canvas"></canvas>
+                        </div>
+
+                        <!-- Attack Stream Table -->
+                        <div class="attack-stream-wrap">
+                            <table class="sentinel-table">
+                                <thead>
+                                    <tr>
+                                        <th class="th-indicator"></th>
+                                        <th>Source IP</th>
+                                        <th>Geo</th>
+                                        <th>Port</th>
+                                        <th>Proto</th>
+                                        <th>Attack Type</th>
+                                        <th>Severity</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attack-stream"></tbody>
+                            </table>
+                        </div>
+
+                        <!-- Charts -->
+                        <div class="chart-section">
+                            <div class="chart-card">
+                                <h3 class="chart-title">Top Attack Types</h3>
+                                <div id="chart-attacks"></div>
+                            </div>
+                            <div class="chart-card">
+                                <h3 class="chart-title">Top Source IPs</h3>
+                                <div id="chart-sources"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar -->
+                    <aside class="sentinel-aside">
+                        <div>
+                            <div class="sidebar-title">Blocked IPs <span class="clr-crit" id="blocked-count">2</span></div>
+                            <div class="blocked-list" id="blocked-list"></div>
+                        </div>
+
+                        <div>
+                            <div class="sidebar-title">Manual Block</div>
+                            <div class="manual-block-form">
+                                <label for="manual-ip" class="sr-only">IP Address</label>
+                                <input type="text" id="manual-ip" placeholder="IP address..." aria-label="IP address to block">
+                                <label for="manual-reason" class="sr-only">Reason</label>
+                                <input type="text" id="manual-reason" placeholder="Reason (optional)" aria-label="Block reason">
+                                <button class="btn-submit-block" onclick="manualBlockIP()">Block IP</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="sidebar-title">Geo Distribution</div>
+                            <div id="geo-chart"></div>
+                        </div>
+
+                        <div>
+                            <div class="sidebar-title">Quick Hardening</div>
+                            <div class="quick-actions">
+                                <button class="quick-btn" onclick="quickHarden('ssh')">Lock SSH</button>
+                                <button class="quick-btn" onclick="quickHarden('telnet')">Kill Telnet</button>
+                                <button class="quick-btn" onclick="quickHarden('mysql')">Guard MySQL</button>
+                                <button class="quick-btn" onclick="quickHarden('all')">Full Lockdown</button>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <!-- ═══ RECON ENGINE ═══ -->
+            <section id="view-recon" class="view-section animate-in">
+                <div class="recon-layout">
+                    <div class="recon-sidebar">
+                        <div class="sidebar-title">Recon Configuration</div>
+                        <div class="manual-block-form">
+                            <div class="form-field-wrap">
+                                <label for="target-host" class="form-label-sm">Target</label>
+                                <input type="text" id="target-host" value="127.0.0.1" class="mt-4">
+                            </div>
+                            <div class="form-field-wrap">
+                                <label for="target-ports" class="form-label-sm">Port Spectrum</label>
+                                <input type="text" id="target-ports"
+                                    value="21, 22, 25, 53, 80, 110, 143, 443, 993, 3306, 5432, 8080, 8443"
+                                    class="mt-4">
+                            </div>
+                        </div>
+
+                        <div class="sidebar-title">Presets</div>
+                        <div class="preset-grid">
+                            <button class="preset-btn" onclick="loadPreset('web')">Web Stack</button>
+                            <button class="preset-btn" onclick="loadPreset('mail')">Mail Srv</button>
+                            <button class="preset-btn" onclick="loadPreset('db')">Databases</button>
+                            <button class="preset-btn" onclick="loadPreset('full')">Full Sweep</button>
+                        </div>
+
+                        <button class="btn-submit-block" id="start-recon-btn" onclick="startScan()">Initiate Sweep</button>
+                        <button class="btn-submit-block btn-abort" id="stop-recon-btn" onclick="stopScan()">Abort Mission</button>
+
+                        <div class="sidebar-title mt-15">Suggested Rules</div>
+                        <div id="suggested-rules" class="text-sm clr-dim">Run a scan to get suggestions...</div>
+                    </div>
+
+                    <div class="recon-main">
+                        <div class="recon-visualizer">
+                            <canvas id="recon-canvas"></canvas>
+                            <div class="recon-hud">
+                                <div class="recon-pct" id="recon-pct">00%</div>
+                                <div class="recon-status" id="recon-status">AWAITING UPLINK</div>
+                            </div>
+                        </div>
+
+                        <div class="recon-stats-row">
+                            <div class="recon-stat-box">
+                                <div class="recon-stat-val clr-clean" id="val-open">0</div>
+                                <div class="recon-stat-label">Open</div>
+                            </div>
+                            <div class="recon-stat-box">
+                                <div class="recon-stat-val clr-crit" id="val-closed">0</div>
+                                <div class="recon-stat-label">Closed</div>
+                            </div>
+                            <div class="recon-stat-box">
+                                <div class="recon-stat-val clr-high" id="val-filtered">0</div>
+                                <div class="recon-stat-label">Filtered</div>
+                            </div>
+                            <div class="recon-stat-box">
+                                <div class="recon-stat-val clr-med" id="val-time">0.0s</div>
+                                <div class="recon-stat-label">Elapsed</div>
+                            </div>
+                        </div>
+
+                        <div class="recon-results-wrap">
+                            <table class="sentinel-table">
+                                <thead>
+                                    <tr>
+                                        <th>Port</th>
+                                        <th>Service</th>
+                                        <th>Status</th>
+                                        <th>Latency</th>
+                                        <th>Risk</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recon-results"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══ PERIMETER DEFENSE ═══ -->
+            <section id="view-def" class="view-section animate-in">
+                <div class="perimeter-layout">
+                    <div class="perimeter-main">
+                        <div class="policy-form-card">
+                            <h3 class="chart-title">Deploy Security Policy</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="rule-name">Policy Name</label>
+                                    <input type="text" id="rule-name" placeholder="e.g. Block SSH Brute">
+                                </div>
+                                <div class="form-group">
+                                    <label for="rule-chain">Chain</label>
+                                    <select id="rule-chain">
+                                        <option value="INPUT">INPUT</option>
+                                        <option value="OUTPUT">OUTPUT</option>
+                                        <option value="FORWARD">FORWARD</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="rule-port">Port</label>
+                                    <input type="text" id="rule-port" placeholder="e.g. 22">
+                                </div>
+                                <div class="form-group">
+                                    <label for="rule-action">Action</label>
+                                    <select id="rule-action">
+                                        <option value="DROP">DROP</option>
+                                        <option value="ACCEPT">ACCEPT</option>
+                                        <option value="REJECT">REJECT</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="btn-submit-block mt-15" onclick="addPerimeterRule()">Commit Policy</button>
+                        </div>
+
+                        <div class="rules-table-wrap">
+                            <table class="sentinel-table">
+                                <thead>
+                                    <tr>
+                                        <th>Policy</th>
+                                        <th>Command</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="perimeter-rules-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <aside class="perimeter-aside">
+                        <div>
+                            <div class="sidebar-title">Hardening Templates</div>
+                            <div class="template-list">
+                                <button class="quick-btn template-btn" onclick="applyTemplate('webserver')">🌐 Web Server Hardening</button>
+                                <button class="quick-btn template-btn" onclick="applyTemplate('database')">🗄️ Database Protection</button>
+                                <button class="quick-btn template-btn" onclick="applyTemplate('ssh')">🔐 SSH Lockdown</button>
+                                <button class="quick-btn template-btn" onclick="applyTemplate('paranoid')">🔥 Paranoid Mode</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="sidebar-title">Export Script</div>
+                            <pre class="export-pre" id="export-terminal"># Sentinel Export
+iptables -F</pre>
+                            <button class="btn-submit-block mt-10" onclick="copyExport()">Copy Script</button>
+                        </div>
+
+                        <div>
+                            <div class="sidebar-title">Active Policy Stats</div>
+                            <div class="policy-stats">
+                                <div class="policy-stat-row">
+                                    <span class="clr-dim">Total Rules</span>
+                                    <span id="stat-total-rules" class="clr-heading">2</span>
+                                </div>
+                                <div class="policy-stat-row">
+                                    <span class="clr-dim">DROP Policies</span>
+                                    <span id="stat-drop" class="clr-crit">1</span>
+                                </div>
+                                <div class="policy-stat-row no-mb">
+                                    <span class="clr-dim">ACCEPT Policies</span>
+                                    <span id="stat-accept" class="clr-clean">1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+
+</html>

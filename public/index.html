@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Praveen's Hub</title>
+    <title>Praveen's Hub — Full-Stack Developer Cockpit & Showcase</title>
     <meta name="description"
-        content="Explore Praveen's full-stack projects — web apps, Python tools, security utilities, and more. A premium developer portfolio.">
-    <meta property="og:title" content="Praveen's Hub — Project Portfolio">
+        content="Explore, launch, and inspect the code of all 18 full-stack projects by Praveen. Web apps, Python tools, cybersecurity utilities, and interactive live demos.">
+    <meta property="og:title" content="Praveen's Hub — Developer Cockpit & Live Project Showcase">
     <meta property="og:description"
-        content="Explore Praveen's full-stack projects — web apps, Python tools, security utilities, and more.">
+        content="Explore, launch, and inspect the code of all 18 full-stack projects by Praveen. Web apps, Python tools, cybersecurity utilities, and interactive live demos.">
     <meta property="og:type" content="website">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,6 +19,15 @@
         rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Prism.js Syntax Highlighting for In-Browser Code Studio -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -34,7 +43,7 @@
         <div class="cmd-palette" id="cmd-palette">
             <div class="cmd-search-row">
                 <i data-lucide="search"></i>
-                <input type="text" id="cmd-input" placeholder="Search projects, type a command..." autocomplete="off"
+                <input type="text" id="cmd-input" placeholder="Search projects, files, or categories..." autocomplete="off"
                     spellcheck="false">
                 <kbd>ESC</kbd>
             </div>
@@ -47,7 +56,7 @@
         </div>
     </div>
 
-    <!-- Detail Drawer -->
+    <!-- Detail & Code Studio Drawer -->
     <div class="drawer-overlay" id="drawer-overlay"></div>
     <aside class="detail-drawer" id="detail-drawer">
         <div class="drawer-header">
@@ -60,39 +69,114 @@
                     <div class="drawer-meta" id="drawer-meta"></div>
                 </div>
             </div>
-            <button class="drawer-close-btn" id="drawer-close" title="Close">
+            <button class="drawer-close-btn" id="drawer-close" title="Close Drawer">
                 <i data-lucide="x"></i>
             </button>
         </div>
 
+        <!-- Dynamic Action Bar -->
         <div class="drawer-actions" id="drawer-actions"></div>
 
+        <!-- Drawer Navigation Tabs -->
         <div class="drawer-tabs">
-            <button class="drawer-tab active" data-tab="overview">Overview</button>
-            <button class="drawer-tab" data-tab="logs">Live Logs</button>
+            <button class="drawer-tab active" data-tab="overview">
+                <i data-lucide="book-open"></i> Overview
+            </button>
+            <button class="drawer-tab" data-tab="code">
+                <i data-lucide="code"></i> Code Studio
+            </button>
+            <button class="drawer-tab" data-tab="logs" id="tab-logs-btn">
+                <i data-lucide="terminal"></i> Console / Live
+            </button>
         </div>
 
         <div class="drawer-content">
+            <!-- Panel 1: Overview & Documentation -->
             <div class="drawer-panel active" id="panel-overview">
+                <div class="overview-quick-launch" id="drawer-quick-launch"></div>
                 <div class="readme-content" id="drawer-readme">
                     <div class="readme-loading">
                         <div class="spinner"></div>
-                        <span>Loading README...</span>
+                        <span>Loading documentation...</span>
                     </div>
                 </div>
             </div>
+
+            <!-- Panel 2: Code Studio & File Explorer -->
+            <div class="drawer-panel" id="panel-code">
+                <div class="code-studio-layout">
+                    <!-- File Explorer Sidebar -->
+                    <div class="code-file-tree">
+                        <div class="file-tree-header">
+                            <span class="file-tree-title"><i data-lucide="folder-tree"></i> Files</span>
+                            <span class="file-tree-count" id="code-file-count">0 files</span>
+                        </div>
+                        <div class="file-tree-list" id="code-file-list"></div>
+                    </div>
+                    <!-- Code Viewer & Editor -->
+                    <div class="code-editor-area">
+                        <div class="code-editor-topbar">
+                            <div class="code-active-file" id="code-active-filename">
+                                <i data-lucide="file-code"></i> <span>Select a file to inspect code</span>
+                            </div>
+                            <div class="code-editor-actions">
+                                <button class="code-btn" id="btn-copy-code" title="Copy code to clipboard">
+                                    <i data-lucide="copy"></i> Copy
+                                </button>
+                                <button class="code-btn" id="btn-run-code" title="Run / Preview this project">
+                                    <i data-lucide="play"></i> Run App
+                                </button>
+                            </div>
+                        </div>
+                        <div class="code-editor-viewport" id="code-viewport">
+                            <div class="code-empty-state">
+                                <i data-lucide="code-2"></i>
+                                <p>Select any source file on the left to inspect, manipulate, or copy the code.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 3: Live Logs / Console -->
             <div class="drawer-panel" id="panel-logs">
                 <div class="logs-terminal" id="drawer-terminal">
-                    <div class="terminal-line system">[ProjectHub] No active server. Start the project to see live logs.
-                    </div>
+                    <div class="terminal-line system">[ProjectHub] Live console ready.</div>
                 </div>
             </div>
         </div>
     </aside>
 
-    <!-- Main Layout -->
+    <!-- Interactive Live App Modal (Fullscreen / In-Browser Preview) -->
+    <div class="live-modal-overlay" id="live-modal-overlay">
+        <div class="live-modal" id="live-modal">
+            <div class="live-modal-header">
+                <div class="live-modal-info">
+                    <span class="live-status-dot"></span>
+                    <span class="live-modal-title" id="live-modal-title">Live Preview</span>
+                    <span class="live-modal-url" id="live-modal-url">/live/...</span>
+                </div>
+                <div class="live-modal-controls">
+                    <button class="live-control-btn" id="btn-modal-refresh" title="Reload App">
+                        <i data-lucide="rotate-cw"></i>
+                    </button>
+                    <button class="live-control-btn" id="btn-modal-newtab" title="Open in New Tab">
+                        <i data-lucide="external-link"></i> Open Tab
+                    </button>
+                    <button class="live-control-btn btn-close-modal" id="btn-modal-close" title="Close Preview">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="live-modal-body">
+                <iframe id="live-iframe" src="about:blank" frameborder="0" allowfullscreen allow="clipboard-read; clipboard-write; geolocation; microphone; camera"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Layout -->
     <div class="app-layout">
-        <!-- Sidebar -->
+        <!-- Sidebar Navigation -->
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-mark">
@@ -100,7 +184,7 @@
                 </div>
                 <div class="logo-text">
                     <span class="logo-title">ProjectHub</span>
-                    <span class="logo-sub">Developer Cockpit</span>
+                    <span class="logo-sub" id="logo-sub">Developer Cockpit</span>
                 </div>
             </div>
 
@@ -140,8 +224,8 @@
                     <span class="nav-count" id="count-static">0</span>
                 </button>
 
-                <div class="nav-divider"></div>
-                <span class="nav-label">Status</span>
+                <div class="nav-divider" id="status-divider"></div>
+                <span class="nav-label" id="status-label">Status</span>
 
                 <button class="nav-item" data-filter="running" id="nav-running">
                     <i data-lucide="activity"></i>
@@ -158,7 +242,7 @@
             </div>
         </nav>
 
-        <!-- Main Content -->
+        <!-- Main Content Area -->
         <main class="main-content">
             <!-- Top Bar -->
             <header class="topbar">
@@ -168,17 +252,17 @@
 
                 <div class="topbar-search">
                     <i data-lucide="search" class="search-icon"></i>
-                    <input type="text" id="search-input" placeholder="Filter projects...">
+                    <input type="text" id="search-input" placeholder="Search projects by name, tech stack, or category...">
                 </div>
 
                 <div class="topbar-actions">
-                    <button class="topbar-btn" id="btn-refresh" title="Rescan projects">
+                    <button class="topbar-btn" id="btn-refresh" title="Rescan / Refresh projects">
                         <i data-lucide="refresh-cw"></i>
                     </button>
                 </div>
             </header>
 
-            <!-- Stats Bar -->
+            <!-- Stats Overview Bar -->
             <section class="stats-bar" id="stats-bar">
                 <div class="stat-card">
                     <div class="stat-icon stat-total">
@@ -189,13 +273,13 @@
                         <span class="stat-label">Projects</span>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" id="stat-card-running">
                     <div class="stat-icon stat-active">
                         <i data-lucide="activity"></i>
                     </div>
                     <div class="stat-info">
                         <span class="stat-value" id="stat-running">0</span>
-                        <span class="stat-label">Running</span>
+                        <span class="stat-label">Live Active</span>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -213,30 +297,33 @@
                     </div>
                     <div class="stat-info">
                         <span class="stat-value" id="stat-python">0</span>
-                        <span class="stat-label">Python</span>
+                        <span class="stat-label">Python Tools</span>
                     </div>
                 </div>
             </section>
 
-            <!-- Section Title -->
+            <!-- Section Title & Counter -->
             <div class="section-header" id="section-header">
                 <h1 id="section-title">All Projects</h1>
                 <span class="section-count" id="section-count">0 projects</span>
             </div>
 
-            <!-- Project Grid -->
+            <!-- Projects Grid -->
             <div class="projects-grid" id="projects-grid">
                 <div class="loading-state">
                     <div class="spinner"></div>
-                    <p>Scanning workspace directories...</p>
+                    <p>Loading projects...</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Toast Notification -->
+    <!-- Toast Notification Banner -->
     <div id="toast" class="toast"></div>
 
+    <!-- Synchronously load bundled data first (guaranteed zero API failures) -->
+    <script src="projects-data.js"></script>
+    <!-- Application Logic -->
     <script src="app.js"></script>
 </body>
 

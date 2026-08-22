@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroMed</title>
+  <meta name="description"
+    content="Clinical AI Risk Prediction & Interactive Symptom Assistant for Fever, Cold & Cough, Heart Disease, Diabetes, Neuro, Kidney, Liver, Thyroid, and Arthritis.">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="module" crossorigin src="/assets/index-DJSJ9mOe.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BXODcxSx.css">
+</head>
+
+<body>
+
+  <!-- Ambient Animated Mesh Background -->
+  <div class="bg-ambient-layer">
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+    <div class="ambient-blob blob-3"></div>
+  </div>
+
+  <!-- SVG Gradient Definition for Gauge Meters -->
+  <svg class="hidden-svg-defs">
+    <defs>
+      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#00f2fe" />
+        <stop offset="100%" stop-color="#4facfe" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- App Wrapper with Vertical Layout -->
+  <div class="app-dashboard">
+
+    <!-- VERTICAL SIDEBAR NAVIGATION -->
+    <aside class="glass-sidebar">
+      <div class="brand-container">
+        <div class="brand-icon">
+          <i class="fa-solid fa-heart-pulse"></i>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">NeuroMed AI</div>
+          <div class="brand-sub">Clinical Suite v2.5</div>
+        </div>
+      </div>
+
+      <!-- Quick AI Chatbot Launcher -->
+      <div class="sidebar-chatbot-promo" onclick="window.openChatbot()">
+        <div class="promo-icon"><i class="fa-solid fa-robot"></i></div>
+        <div class="promo-info">
+          <div class="promo-title">AI Assistant Chat</div>
+          <div class="promo-sub">Interactive Symptom Bot</div>
+        </div>
+        <i class="fa-solid fa-chevron-right promo-arrow"></i>
+      </div>
+
+      <div class="sidebar-nav-heading">Clinical Modules</div>
+
+      <nav class="vertical-nav-tabs" role="tablist">
+        <button class="nav-btn active" data-tab="tab-fever" role="tab">
+          <i class="fa-solid fa-thermometer"></i>
+          <span>Fever & Infection</span>
+        </button>
+        <button class="nav-btn" data-tab="tab-respiratory" role="tab">
+          <i class="fa-solid fa-lungs"></i>
+          <span>Cold & Cough</span>
+        </button>
+        <button class="nav-btn" data-tab="tab-neuro" role="tab">
+          <i class="fa-solid fa-brain"></i>
+          <span>Stroke & Neuro</span>
+        </button>
+        <button class="nav-btn" data-tab="tab-joint" role="tab">
+          <i class="fa-solid fa-bone"></i>
+          <span>Arthritis & Gout</span>
+        </button>
+        <button class="nav-btn" data-tab="tab-thyroid" role="tab">
+          <i class="fa-solid fa-dna"></i>
+          <span>Thyroid Disorder</span>
+        </button>
+        <button class="nav-btn" data-tab="tab-diabetes" role="tab">
+          <i class="fa-solid fa-droplet"></i>
+          <span>Diabetes Risk</span>
+        </button>
+        <button class="nav-btn" data-tab="tab-heart" role="tab">
+          <i class="fa-solid fa-heart-circle-bolt"></i>
+          <span>Heart Disease</span>
+        </button>
+        <button class="nav-btn" data-tab="tab-kidney" role="tab">
+          <i class="fa-solid fa-notes-medical"></i>
+          <span>Kidney Function</span>
+        </button>
+        <button class="nav-btn" data-tab="tab-liver" role="tab">
+          <i class="fa-solid fa-vial"></i>
+          <span>Liver Health</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-status">
+          <span class="status-indicator"></span> System Operational
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+
+      <!-- Top Header Bar -->
+      <header class="main-header">
+        <div class="header-welcome">
+          <h1>Clinical Risk Assessment Engine</h1>
+        </div>
+        <div class="header-actions">
+          <button class="header-btn" onclick="window.openChatbot()">
+            <i class="fa-solid fa-robot"></i> Open AI Chatbot
+          </button>
+          <button class="header-btn primary" onclick="window.printReport('current')">
+            <i class="fa-solid fa-file-pdf"></i> Download Report
+          </button>
+        </div>
+      </header>
+
+      <!-- ===================================================================
+           MODULE 1: FEVER & VIRAL INFECTION CHECKER
+           =================================================================== -->
+      <section id="tab-fever" class="tab-view active">
+        <div class="predictor-grid">
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-thermometer text-cyan"></i>
+                Fever & Symptom Parameters
+              </h2>
+              <span class="badge-risk badge-green">Infection Module</span>
+            </div>
+
+            <form id="feverForm">
+              <div class="form-grid form-grid-mb">
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-fever-temp">Body Temperature
+                      <button type="button" id="temp-unit-toggle" class="unit-toggle-btn" title="Toggle °C / °F">°F</button>
+                    </label>
+                    <span class="label-val" id="val-fever-temp">101.5°F <span class="unit-alt">(38.6°C)</span></span>
+                  </div>
+                  <input type="range" id="input-fever-temp" title="Body Temperature"
+                    aria-label="Body Temperature" class="slider-input" min="97.0" max="105.0"
+                    value="101.5" step="0.1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-fever-dur">Fever Duration (Days)</label>
+                    <span class="label-val" id="val-fever-dur">3</span>
+                  </div>
+                  <input type="range" id="input-fever-dur" title="Fever Duration in Days"
+                    aria-label="Fever Duration in Days" class="slider-input" min="1" max="14" value="3" step="1">
+                </div>
+              </div>
+
+              <div class="section-label">Select Associated Symptoms:</div>
+
+              <div class="symptom-chips-grid">
+                <div class="chip-btn" data-symptom="chills"><i class="fa-solid fa-snowflake"></i> Chills & Rigors</div>
+                <div class="chip-btn" data-symptom="headache"><i class="fa-solid fa-head-side-virus"></i> Severe
+                  Headache
+                </div>
+                <div class="chip-btn" data-symptom="jointPain"><i class="fa-solid fa-bone"></i> Joint / Muscle Pain
+                </div>
+                <div class="chip-btn" data-symptom="bodyAche"><i class="fa-solid fa-child-reaching"></i> Body Ache</div>
+                <div class="chip-btn" data-symptom="rash"><i class="fa-solid fa-viruses"></i> Skin Rash</div>
+                <div class="chip-btn" data-symptom="vomiting"><i class="fa-solid fa-face-flushed"></i> Nausea / Vomiting
+                </div>
+              </div>
+
+              <button type="submit" class="btn-predict">
+                <i class="fa-solid fa-microchip"></i> Calculate Fever Infection Assessment
+              </button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-chart-pie text-cyan"></i>
+                Infection Risk Assessment
+              </h2>
+              <button class="nav-btn btn-export" onclick="window.printReport('fever')">
+                <i class="fa-solid fa-file-pdf"></i> Download Report
+              </button>
+            </div>
+
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 160 160">
+                <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                <circle id="feverGaugeMeter" class="gauge-meter" cx="80" cy="80" r="70"></circle>
+              </svg>
+              <div class="gauge-center-text">
+                <div id="feverPercent" class="gauge-percent">0%</div>
+                <div class="gauge-label">Infection Score</div>
+              </div>
+            </div>
+
+            <div class="center-box">
+              <span id="feverRiskBadge" class="badge-risk badge-green">Evaluating...</span>
+            </div>
+
+            <div class="chart-wrapper-box">
+              <div class="sub-label">Symptom Impact Analysis:</div>
+              <div class="chart-container">
+                <canvas id="feverShapChart"></canvas>
+              </div>
+            </div>
+
+            <div id="feverRecs" class="recommendations-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           MODULE 2: RESPIRATORY, COLD & COUGH PREDICTOR
+           =================================================================== -->
+      <section id="tab-respiratory" class="tab-view">
+        <div class="predictor-grid">
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-lungs text-blue"></i>
+                Respiratory & Cough Factors
+              </h2>
+              <span class="badge-risk badge-amber">Pulmonary Module</span>
+            </div>
+
+            <form id="respiratoryForm">
+              <div class="form-grid">
+                <div class="input-group">
+                  <label class="input-label" for="resp-cough-type">Cough Severity & Type</label>
+                  <select id="resp-cough-type" title="Cough Severity & Type" aria-label="Cough Severity & Type"
+                    class="custom-input">
+                    <option value="0">Mild Dry Cough</option>
+                    <option value="1">Persistent Dry Irritating Cough</option>
+                    <option value="2" selected>Wet Productive Cough (Mucus)</option>
+                    <option value="3">Severe Paroxysmal Coughing Spells</option>
+                  </select>
+                </div>
+
+                <div class="input-group">
+                  <label class="input-label" for="resp-sputum">Sputum / Phlegm Color</label>
+                  <select id="resp-sputum" title="Sputum or Phlegm Color" aria-label="Sputum or Phlegm Color"
+                    class="custom-input">
+                    <option value="clear">Clear / Normal</option>
+                    <option value="white">White / Frothy</option>
+                    <option value="yellow-green" selected>Yellow-Green (Infection Signal)</option>
+                    <option value="rusty">Rusty / Blood-tinged</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="section-label">Respiratory Clinical Indicators:</div>
+
+              <div class="symptom-chips-grid">
+                <div class="chip-btn" data-symptom="shortnessOfBreath"><i class="fa-solid fa-wind"></i> Shortness of
+                  Breath</div>
+                <div class="chip-btn" data-symptom="wheezing"><i class="fa-solid fa-strikethrough"></i> Wheezing Sound
+                </div>
+                <div class="chip-btn" data-symptom="chestTightness"><i class="fa-solid fa-compress"></i> Chest Tightness
+                </div>
+                <div class="chip-btn" data-symptom="smokingHistory"><i class="fa-solid fa-smoking"></i> Tobacco Exposure
+                </div>
+              </div>
+
+              <button type="submit" class="btn-predict">
+                <i class="fa-solid fa-lungs-virus"></i> Assess Respiratory Health Risk
+              </button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-square-poll-vertical text-blue"></i>
+                Pulmonary Assessment
+              </h2>
+              <button class="nav-btn btn-export" onclick="window.printReport('respiratory')">
+                <i class="fa-solid fa-file-pdf"></i> Download Report
+              </button>
+            </div>
+
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 160 160">
+                <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                <circle id="respGaugeMeter" class="gauge-meter" cx="80" cy="80" r="70"></circle>
+              </svg>
+              <div class="gauge-center-text">
+                <div id="respPercent" class="gauge-percent">0%</div>
+                <div class="gauge-label">Pulmonary Risk</div>
+              </div>
+            </div>
+
+            <div class="center-box">
+              <span id="respRiskBadge" class="badge-risk badge-green">Evaluating...</span>
+            </div>
+
+            <div class="chart-wrapper-box">
+              <div class="chart-container">
+                <canvas id="respShapChart"></canvas>
+              </div>
+            </div>
+
+            <div id="respRecs" class="recommendations-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           MODULE 3: NEUROLOGICAL & STROKE RISK
+           =================================================================== -->
+      <section id="tab-neuro" class="tab-view">
+        <div class="predictor-grid">
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-brain text-purple"></i>
+                Neurological Symptoms
+              </h2>
+              <span class="badge-risk badge-red">Stroke & Migraine</span>
+            </div>
+
+            <form id="neuroForm">
+              <div class="form-grid">
+                <div class="input-group">
+                  <label class="input-label" for="neuro-headache">Headache Onset & Pattern</label>
+                  <select id="neuro-headache" title="Headache Pattern" aria-label="Headache Pattern"
+                    class="custom-input">
+                    <option value="0">No Headache</option>
+                    <option value="1">Mild Dull Tension Headache</option>
+                    <option value="2" selected>Throbbing Migraine with Light Sensitivity</option>
+                    <option value="3">Sudden Severe 'Thunderclap' Headache</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="section-label">Neurological Warning Signs:</div>
+
+              <div class="symptom-chips-grid">
+                <div class="chip-btn" data-symptom="numbness"><i class="fa-solid fa-hand-holding-medical"></i> Facial /
+                  Limb Numbness</div>
+                <div class="chip-btn" data-symptom="speechDiff"><i class="fa-solid fa-comment-slash"></i> Speech
+                  Difficulty / Slurring</div>
+                <div class="chip-btn" data-symptom="visualAura"><i class="fa-solid fa-eye-slash"></i> Visual Aura /
+                  Blurry
+                  Vision</div>
+                <div class="chip-btn" data-symptom="dizziness"><i class="fa-solid fa-rotate"></i> Vertigo / Balance Loss
+                </div>
+              </div>
+
+              <button type="submit" class="btn-predict">
+                <i class="fa-solid fa-brain"></i> Evaluate Neurological Stroke Risk
+              </button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-brain text-purple"></i>
+                Cerebrovascular Assessment
+              </h2>
+              <button class="nav-btn btn-export" onclick="window.printReport('neuro')">
+                <i class="fa-solid fa-file-pdf"></i> Download Report
+              </button>
+            </div>
+
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 160 160">
+                <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                <circle id="neuroGaugeMeter" class="gauge-meter" cx="80" cy="80" r="70"></circle>
+              </svg>
+              <div class="gauge-center-text">
+                <div id="neuroPercent" class="gauge-percent">0%</div>
+                <div class="gauge-label">Neuro Risk</div>
+              </div>
+            </div>
+
+            <div class="center-box">
+              <span id="neuroRiskBadge" class="badge-risk badge-green">Evaluating...</span>
+            </div>
+
+            <div class="chart-wrapper-box">
+              <div class="chart-container">
+                <canvas id="neuroShapChart"></canvas>
+              </div>
+            </div>
+
+            <div id="neuroRecs" class="recommendations-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           MODULE 4: ARTHRITIS & JOINT GOUT RISK
+           =================================================================== -->
+      <section id="tab-joint" class="tab-view">
+        <div class="predictor-grid">
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-bone text-amber"></i>
+                Joint & Uric Acid Parameters
+              </h2>
+              <span class="badge-risk badge-amber">Rheumatology Module</span>
+            </div>
+
+            <form id="jointForm">
+              <div class="form-grid">
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-joint-uric">Serum Uric Acid (mg/dL)</label>
+                    <span class="label-val" id="val-joint-uric">7.8</span>
+                  </div>
+                  <input type="range" id="input-joint-uric" title="Serum Uric Acid level"
+                    aria-label="Serum Uric Acid level" class="slider-input" min="3.0" max="14.0" value="7.8" step="0.1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-joint-stiff">Morning Stiffness (Minutes)</label>
+                    <span class="label-val" id="val-joint-stiff">45</span>
+                  </div>
+                  <input type="range" id="input-joint-stiff" title="Morning Stiffness in minutes"
+                    aria-label="Morning Stiffness in minutes" class="slider-input" min="0" max="180" value="45"
+                    step="5">
+                </div>
+              </div>
+
+              <div class="section-label">Joint Symptoms:</div>
+
+              <div class="symptom-chips-grid">
+                <div class="chip-btn" data-symptom="jointSwelling"><i class="fa-solid fa-circle-dot"></i> Joint Swelling
+                  /
+                  Effusion</div>
+                <div class="chip-btn" data-symptom="rednessWarmth"><i class="fa-solid fa-fire-flame-curved"></i> Joint
+                  Redness & Warmth</div>
+              </div>
+
+              <button type="submit" class="btn-predict">
+                <i class="fa-solid fa-bone"></i> Assess Joint & Gout Risk
+              </button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-bone text-amber"></i>
+                Joint Health Assessment
+              </h2>
+              <button class="nav-btn btn-export" onclick="window.printReport('joint')">
+                <i class="fa-solid fa-file-pdf"></i> Download Report
+              </button>
+            </div>
+
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 160 160">
+                <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                <circle id="jointGaugeMeter" class="gauge-meter" cx="80" cy="80" r="70"></circle>
+              </svg>
+              <div class="gauge-center-text">
+                <div id="jointPercent" class="gauge-percent">0%</div>
+                <div class="gauge-label">Joint Risk</div>
+              </div>
+            </div>
+
+            <div class="center-box">
+              <span id="jointRiskBadge" class="badge-risk badge-green">Evaluating...</span>
+            </div>
+
+            <div class="chart-wrapper-box">
+              <div class="chart-container">
+                <canvas id="jointShapChart"></canvas>
+              </div>
+            </div>
+
+            <div id="jointRecs" class="recommendations-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           MODULE 5: THYROID DISORDER ASSESSMENT
+           =================================================================== -->
+      <section id="tab-thyroid" class="tab-view">
+        <div class="predictor-grid">
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-dna text-cyan"></i>
+                Thyroid Function Profile
+              </h2>
+              <span class="badge-risk badge-green">Endocrine Module</span>
+            </div>
+
+            <form id="thyroidForm">
+              <div class="form-grid">
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-thyroid-tsh">Serum TSH (mIU/L)</label>
+                    <span class="label-val" id="val-thyroid-tsh">6.5</span>
+                  </div>
+                  <input type="range" id="input-thyroid-tsh" title="Serum TSH Level" aria-label="Serum TSH Level"
+                    class="slider-input" min="0.1" max="15.0" value="6.5" step="0.1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-thyroid-ft4">Free T4 (ng/dL)</label>
+                    <span class="label-val" id="val-thyroid-ft4">0.7</span>
+                  </div>
+                  <input type="range" id="input-thyroid-ft4" title="Free T4 Level" aria-label="Free T4 Level"
+                    class="slider-input" min="0.2" max="3.0" value="0.7" step="0.1">
+                </div>
+
+                <div class="input-group">
+                  <label class="input-label" for="thyroid-weight">Unexplained Weight Shift</label>
+                  <select id="thyroid-weight" title="Unexplained Weight Shift" aria-label="Unexplained Weight Shift"
+                    class="custom-input">
+                    <option value="none">Stable Weight</option>
+                    <option value="gain" selected>Rapid Unexplained Weight Gain</option>
+                    <option value="loss">Unexplained Rapid Weight Loss</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="section-label">Thyroid Metabolic Signs:</div>
+
+              <div class="symptom-chips-grid">
+                <div class="chip-btn" data-symptom="palpitations"><i class="fa-solid fa-heart-pulse"></i> Heart
+                  Palpitations</div>
+                <div class="chip-btn" data-symptom="hairThinning"><i class="fa-solid fa-user-ninja"></i> Hair Thinning &
+                  Dry Skin</div>
+              </div>
+
+              <button type="submit" class="btn-predict">
+                <i class="fa-solid fa-dna"></i> Calculate Thyroid Disorder Risk
+              </button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-dna text-cyan"></i>
+                Thyroid Health Assessment
+              </h2>
+              <button class="nav-btn btn-export" onclick="window.printReport('thyroid')">
+                <i class="fa-solid fa-file-pdf"></i> Download Report
+              </button>
+            </div>
+
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 160 160">
+                <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                <circle id="thyroidGaugeMeter" class="gauge-meter" cx="80" cy="80" r="70"></circle>
+              </svg>
+              <div class="gauge-center-text">
+                <div id="thyroidPercent" class="gauge-percent">0%</div>
+                <div class="gauge-label">Thyroid Risk</div>
+              </div>
+            </div>
+
+            <div class="center-box">
+              <span id="thyroidRiskBadge" class="badge-risk badge-green">Evaluating...</span>
+            </div>
+
+            <div class="chart-wrapper-box">
+              <div class="chart-container">
+                <canvas id="thyroidShapChart"></canvas>
+              </div>
+            </div>
+
+            <div id="thyroidRecs" class="recommendations-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           MODULE 6: DIABETES RISK PREDICTOR
+           =================================================================== -->
+      <section id="tab-diabetes" class="tab-view">
+        <div class="predictor-grid">
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-sliders text-cyan"></i>
+                Diabetes Metabolic Metrics
+              </h2>
+              <span class="badge-risk badge-green">Pima Dataset</span>
+            </div>
+
+            <form id="diabetesForm">
+              <div class="form-grid">
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-glucose">Glucose Level (mg/dL)</label>
+                    <span class="label-val" id="val-glucose">130</span>
+                  </div>
+                  <input type="range" id="input-glucose" title="Glucose Level in mg/dL"
+                    aria-label="Glucose Level in mg/dL" class="slider-input" min="60" max="240" value="130" step="1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-bmi">BMI (Body Mass Index)</label>
+                    <span class="label-val" id="val-bmi">28.5</span>
+                  </div>
+                  <input type="range" id="input-bmi" title="BMI Body Mass Index" aria-label="BMI Body Mass Index"
+                    class="slider-input" min="15.0" max="50.0" value="28.5" step="0.5">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-age">Age (Years)</label>
+                    <span class="label-val" id="val-age">42</span>
+                  </div>
+                  <input type="range" id="input-age" title="Age in Years" aria-label="Age in Years" class="slider-input"
+                    min="18" max="90" value="42" step="1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-bp">Blood Pressure (mmHg)</label>
+                    <span class="label-val" id="val-bp">78</span>
+                  </div>
+                  <input type="range" id="input-bp" title="Diastolic Blood Pressure"
+                    aria-label="Diastolic Blood Pressure" class="slider-input" min="40" max="140" value="78" step="1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-insulin">Serum Insulin (μU/mL)</label>
+                    <span class="label-val" id="val-insulin">95</span>
+                  </div>
+                  <input type="range" id="input-insulin" title="Serum Insulin Level" aria-label="Serum Insulin Level"
+                    class="slider-input" min="15" max="350" value="95" step="5">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-pedigree">Pedigree Score (Genetics)</label>
+                    <span class="label-val" id="val-pedigree">0.45</span>
+                  </div>
+                  <input type="range" id="input-pedigree" title="Diabetes Pedigree Score"
+                    aria-label="Diabetes Pedigree Score" class="slider-input" min="0.05" max="2.40" value="0.45"
+                    step="0.05">
+                </div>
+              </div>
+
+              <button type="submit" class="btn-predict">
+                <i class="fa-solid fa-microchip"></i> Calculate Diabetes Risk Assessment
+              </button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-chart-pie text-cyan"></i>
+                Diabetes Risk Assessment
+              </h2>
+              <button class="nav-btn btn-export" onclick="window.printReport('diabetes')">
+                <i class="fa-solid fa-file-pdf"></i> Download Report
+              </button>
+            </div>
+
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 160 160">
+                <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                <circle id="diabetesGaugeMeter" class="gauge-meter" cx="80" cy="80" r="70"></circle>
+              </svg>
+              <div class="gauge-center-text">
+                <div id="diabetesPercent" class="gauge-percent">0%</div>
+                <div class="gauge-label">Diabetes Risk</div>
+              </div>
+            </div>
+
+            <div class="center-box">
+              <span id="diabetesRiskBadge" class="badge-risk badge-green">Evaluating...</span>
+            </div>
+
+            <div class="chart-wrapper-box">
+              <div class="chart-container">
+                <canvas id="diabetesShapChart"></canvas>
+              </div>
+            </div>
+
+            <div id="diabetesRecs" class="recommendations-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           MODULE 7: HEART DISEASE PREDICTOR
+           =================================================================== -->
+      <section id="tab-heart" class="tab-view">
+        <div class="predictor-grid">
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-heart-pulse text-blue"></i>
+                Cardiovascular Health Metrics
+              </h2>
+              <span class="badge-risk badge-amber">UCI Heart Module</span>
+            </div>
+
+            <form id="heartForm">
+              <div class="form-grid">
+                <div class="input-group">
+                  <label class="input-label" for="heart-cp">Chest Pain Type</label>
+                  <select id="heart-cp" title="Chest Pain Type" aria-label="Chest Pain Type" class="custom-input">
+                    <option value="0">Typical Angina (Highest Risk)</option>
+                    <option value="1">Atypical Angina</option>
+                    <option value="2">Non-Anginal Pain</option>
+                    <option value="3" selected>Asymptomatic</option>
+                  </select>
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-heart-hr">Max Heart Rate (bpm)</label>
+                    <span class="label-val" id="val-heart-hr">152</span>
+                  </div>
+                  <input type="range" id="input-heart-hr" title="Max Heart Rate Achieved"
+                    aria-label="Max Heart Rate Achieved" class="slider-input" min="70" max="210" value="152" step="1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-heart-op">ST Depression (Oldpeak)</label>
+                    <span class="label-val" id="val-heart-op">1.2</span>
+                  </div>
+                  <input type="range" id="input-heart-op" title="ST Depression Oldpeak"
+                    aria-label="ST Depression Oldpeak" class="slider-input" min="0.0" max="6.2" value="1.2" step="0.1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-heart-chol">Serum Cholesterol (mg/dL)</label>
+                    <span class="label-val" id="val-heart-chol">240</span>
+                  </div>
+                  <input type="range" id="input-heart-chol" title="Serum Cholesterol in mg/dL"
+                    aria-label="Serum Cholesterol in mg/dL" class="slider-input" min="120" max="450" value="240"
+                    step="5">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-heart-bp">Resting BP (mmHg)</label>
+                    <span class="label-val" id="val-heart-bp">130</span>
+                  </div>
+                  <input type="range" id="input-heart-bp" title="Resting Blood Pressure"
+                    aria-label="Resting Blood Pressure" class="slider-input" min="90" max="200" value="130" step="1">
+                </div>
+              </div>
+
+              <button type="submit" class="btn-predict">
+                <i class="fa-solid fa-heart-circle-check"></i> Evaluate Heart Disease Risk
+              </button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-heart-circle-bolt text-blue"></i>
+                Cardiovascular Assessment
+              </h2>
+              <button class="nav-btn btn-export" onclick="window.printReport('heart')">
+                <i class="fa-solid fa-file-pdf"></i> Download Report
+              </button>
+            </div>
+
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 160 160">
+                <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                <circle id="heartGaugeMeter" class="gauge-meter" cx="80" cy="80" r="70"></circle>
+              </svg>
+              <div class="gauge-center-text">
+                <div id="heartPercent" class="gauge-percent">0%</div>
+                <div class="gauge-label">Heart Risk</div>
+              </div>
+            </div>
+
+            <div class="center-box">
+              <span id="heartRiskBadge" class="badge-risk badge-green">Evaluating...</span>
+            </div>
+
+            <div class="chart-wrapper-box">
+              <div class="chart-container">
+                <canvas id="heartShapChart"></canvas>
+              </div>
+            </div>
+
+            <div id="heartRecs" class="recommendations-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           MODULE 8: KIDNEY RISK PREDICTOR
+           =================================================================== -->
+      <section id="tab-kidney" class="tab-view">
+        <div class="predictor-grid">
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-notes-medical text-purple"></i>
+                Kidney & Renal Parameters
+              </h2>
+              <span class="badge-risk badge-purple">Renal Module</span>
+            </div>
+
+            <form id="kidneyForm">
+              <div class="form-grid">
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-kidney-creat">Serum Creatinine (mg/dL)</label>
+                    <span class="label-val" id="val-kidney-creat">1.1</span>
+                  </div>
+                  <input type="range" id="input-kidney-creat" title="Serum Creatinine Level"
+                    aria-label="Serum Creatinine Level" class="slider-input" min="0.4" max="6.0" value="1.1" step="0.1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-kidney-urea">Blood Urea (mg/dL)</label>
+                    <span class="label-val" id="val-kidney-urea">24</span>
+                  </div>
+                  <input type="range" id="input-kidney-urea" title="Blood Urea Nitrogen Level"
+                    aria-label="Blood Urea Nitrogen Level" class="slider-input" min="10" max="120" value="24" step="1">
+                </div>
+
+                <div class="input-group">
+                  <label class="input-label" for="kidney-albumin">Urine Albumin (Proteinuria)</label>
+                  <select id="kidney-albumin" title="Urine Albumin Grade" aria-label="Urine Albumin Grade"
+                    class="custom-input">
+                    <option value="0">Grade 0 (Normal)</option>
+                    <option value="1">Grade 1 (Trace Protein)</option>
+                    <option value="2">Grade 2+ (Severe Proteinuria)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="section-label">Kidney & Fluid Signs:</div>
+
+              <div class="symptom-chips-grid">
+                <div class="chip-btn" data-symptom="edema"><i class="fa-solid fa-socks"></i> Peripheral Edema (Ankle
+                  Swelling)</div>
+                <div class="chip-btn" data-symptom="urinationFreq"><i class="fa-solid fa-toilet"></i> Frequent Night
+                  Urination</div>
+              </div>
+
+              <button type="submit" class="btn-predict">
+                <i class="fa-solid fa-microchip"></i> Calculate Kidney Function Risk
+              </button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-notes-medical text-purple"></i>
+                Renal Health Assessment
+              </h2>
+              <button class="nav-btn btn-export" onclick="window.printReport('kidney')">
+                <i class="fa-solid fa-file-pdf"></i> Download Report
+              </button>
+            </div>
+
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 160 160">
+                <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                <circle id="kidneyGaugeMeter" class="gauge-meter" cx="80" cy="80" r="70"></circle>
+              </svg>
+              <div class="gauge-center-text">
+                <div id="kidneyPercent" class="gauge-percent">0%</div>
+                <div class="gauge-label">Renal Risk</div>
+              </div>
+            </div>
+
+            <div class="center-box">
+              <span id="kidneyRiskBadge" class="badge-risk badge-green">Evaluating...</span>
+            </div>
+
+            <div class="chart-wrapper-box">
+              <div class="chart-container">
+                <canvas id="kidneyShapChart"></canvas>
+              </div>
+            </div>
+
+            <div id="kidneyRecs" class="recommendations-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           MODULE 9: LIVER HEALTH PREDICTOR
+           =================================================================== -->
+      <section id="tab-liver" class="tab-view">
+        <div class="predictor-grid">
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-vial text-green"></i>
+                Liver Function Parameters
+              </h2>
+              <span class="badge-risk badge-green">Hepatic Module</span>
+            </div>
+
+            <form id="liverForm">
+              <div class="form-grid">
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-liver-bili">Total Bilirubin (mg/dL)</label>
+                    <span class="label-val" id="val-liver-bili">0.9</span>
+                  </div>
+                  <input type="range" id="input-liver-bili" title="Total Bilirubin Level"
+                    aria-label="Total Bilirubin Level" class="slider-input" min="0.2" max="10.0" value="0.9" step="0.1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-liver-alt">ALT Transaminase (U/L)</label>
+                    <span class="label-val" id="val-liver-alt">35</span>
+                  </div>
+                  <input type="range" id="input-liver-alt" title="ALT Transaminase Level"
+                    aria-label="ALT Transaminase Level" class="slider-input" min="10" max="250" value="35" step="1">
+                </div>
+
+                <div class="input-group">
+                  <div class="input-label">
+                    <label for="input-liver-ast">AST Enzyme (U/L)</label>
+                    <span class="label-val" id="val-liver-ast">28</span>
+                  </div>
+                  <input type="range" id="input-liver-ast" title="AST Enzyme Level" aria-label="AST Enzyme Level"
+                    class="slider-input" min="10" max="220" value="28" step="1">
+                </div>
+              </div>
+
+              <div class="section-label">Hepatic Symptoms:</div>
+
+              <div class="symptom-chips-grid">
+                <div class="chip-btn" data-symptom="jaundice"><i class="fa-solid fa-eye"></i> Jaundice (Yellow Eyes /
+                  Skin)</div>
+                <div class="chip-btn" data-symptom="fatigue"><i class="fa-solid fa-bed"></i> Chronic Fatigue</div>
+              </div>
+
+              <button type="submit" class="btn-predict">
+                <i class="fa-solid fa-vial-circle-check"></i> Evaluate Liver Function Risk
+              </button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-title-bar">
+              <h2 class="card-heading">
+                <i class="fa-solid fa-vial text-green"></i>
+                Hepatic Assessment
+              </h2>
+              <button class="nav-btn btn-export" onclick="window.printReport('liver')">
+                <i class="fa-solid fa-file-pdf"></i> Download Report
+              </button>
+            </div>
+
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 160 160">
+                <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                <circle id="liverGaugeMeter" class="gauge-meter" cx="80" cy="80" r="70"></circle>
+              </svg>
+              <div class="gauge-center-text">
+                <div id="liverPercent" class="gauge-percent">0%</div>
+                <div class="gauge-label">Hepatic Risk</div>
+              </div>
+            </div>
+
+            <div class="center-box">
+              <span id="liverRiskBadge" class="badge-risk badge-green">Evaluating...</span>
+            </div>
+
+            <div class="chart-wrapper-box">
+              <div class="chart-container">
+                <canvas id="liverShapChart"></canvas>
+              </div>
+            </div>
+
+            <div id="liverRecs" class="recommendations-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <p>🩺 Multi-Disease Risk Prediction & Diagnostic System</p>
+        <p class="hero-subtitle">Comprehensive Clinical Intelligence Engine • Integrated AI Chatbot</p>
+      </footer>
+    </main>
+
+  </div>
+
+  <!-- ===================================================================
+       FLOATING CHATBOT WIDGET
+       =================================================================== -->
+
+  <!-- Floating Chat Toggle Button -->
+  <button class="chat-fab" id="chatFab" title="Chat with NeuroMed AI">
+    <i class="fa-solid fa-robot chat-fab-icon" id="chatFabIcon"></i>
+    <span class="chat-fab-pulse"></span>
+    <span class="chat-fab-badge">AI</span>
+  </button>
+
+  <!-- Chat Panel Overlay -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-panel-inner">
+      <!-- Chat Header -->
+      <header class="cp-header">
+        <div class="cp-header-left">
+          <div class="cp-avatar">
+            <i class="fa-solid fa-robot"></i>
+            <span class="cp-status-dot"></span>
+          </div>
+          <div class="cp-header-info">
+            <div class="cp-bot-name">NeuroMed AI</div>
+            <span class="cp-bot-status" id="cpBotStatus">Online • AI Health Assistant</span>
+          </div>
+        </div>
+        <button class="cp-close-btn" id="chatPanelClose" title="Close Chat">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </header>
+
+      <!-- Chat Messages -->
+      <main class="cp-messages" id="cpMessages"></main>
+
+      <!-- Chat Footer -->
+      <footer class="cp-footer">
+        <div class="cp-quick-replies" id="cpQuickReplies"></div>
+        <div class="cp-brand">
+          <i class="fa-solid fa-shield-halved"></i> NeuroMed AI • Symptom Assessment
+        </div>
+      </footer>
+    </div>
+  </div>
+
+</body>
+
+</html>

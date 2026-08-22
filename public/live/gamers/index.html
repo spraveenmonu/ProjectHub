@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamer's Hub</title>
+    <meta name="description"
+        content="A premium collection of mini-games with stunning animations, glassmorphism, and smooth transitions.">
+    <meta name="theme-color" content="#03030c">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="background-glow"></div>
+
+    <!-- LOGIN GATE -->
+    <div id="profile-gate" class="overlay">
+        <div class="setup-content glass">
+            <div class="gate-icon">🎮</div>
+            <h2>Welcome <span>Gamer</span></h2>
+            <p class="gate-sub">Enter your handle to join the hub</p>
+            <input type="text" id="user-name-input" class="glass-input" placeholder="Your gamer tag..." maxlength="15"
+                autocomplete="off">
+            <button id="enter-hub-btn" class="glass-btn primary">ENTER HUB</button>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <main id="main-dashboard" class="hidden">
+        <header class="app-header">
+            <div class="brand">
+                <h1>GAMER'S <span>HUB</span></h1>
+                <div class="live-indicator"><span class="pulse"></span> ONLINE</div>
+            </div>
+            <div class="search-container">
+                <input type="text" id="game-search" class="glass-input small" placeholder="🔍 Search games...">
+            </div>
+            <div class="header-user" id="header-user"></div>
+        </header>
+
+        <div class="dashboard-body">
+            <section class="game-grid-vertical" id="game-container"></section>
+
+            <aside class="sidebar-ranking glass">
+                <div class="sidebar-header">
+                    <h3>🏆 HALL OF <span>FAME</span></h3>
+                </div>
+                <div class="user-stats-card glass">
+                    <span class="stat-label">YOUR TOTAL SCORE</span>
+                    <span id="total-wins" class="stat-value">0</span>
+                </div>
+                <div class="leaderboard-content">
+                    <ul id="leaderboard-list"></ul>
+                </div>
+                <div class="sidebar-footer">
+                    <button id="clear-rankings-btn" class="glass-btn small danger">RESET ALL DATA</button>
+                    <div class="system-status">⚡ ENCRYPTED LINK ACTIVE</div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- GAME SETUP SCREEN -->
+    <div id="game-setup-screen" class="overlay hidden">
+        <div class="setup-content glass">
+            <h2 id="setup-title">Setup <span>Game</span></h2>
+            <div id="setup-options"></div>
+            <div class="setup-controls">
+                <button id="back-to-dashboard" class="glass-btn small">&larr; BACK</button>
+                <button id="start-game-btn" class="glass-btn primary">START MATCH</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME VIEWPORT -->
+    <div id="game-viewport" class="overlay hidden">
+        <div class="game-actions-bar">
+            <button id="back-to-hub" class="back-btn">&larr; HUB</button>
+            <div id="game-title-bar"></div>
+            <button id="restart-game-btn" class="back-btn restart-btn">↺ RESTART</button>
+        </div>
+        <div id="game-content-container"></div>
+    </div>
+
+    <!-- VICTORY MODAL -->
+    <div id="win-modal" class="modal">
+        <div class="confetti-container" id="confetti"></div>
+        <div class="modal-content glass celebration">
+            <div class="trophy-icon">🏆</div>
+            <h1 id="win-title">YOU <span>WON!</span></h1>
+            <p id="win-message">Incredible skills, champion!</p>
+            <div class="modal-btns">
+                <button id="play-again-modal-btn" class="glass-btn primary">PLAY AGAIN</button>
+                <button id="close-win-modal" class="glass-btn">BACK TO HUB</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game modules -->
+    <script src="games/ttt.js"></script>
+    <script src="games/candy.js"></script>
+    <script src="games/memory.js"></script>
+    <script src="games/game2048.js"></script>
+    <script src="games/snakes.js"></script>
+    <script src="games/ludo.js"></script>
+    <script src="games/sudoku.js"></script>
+    <script src="games/queens.js"></script>
+    <script src="games/puzzle.js"></script>
+    <script src="games/tango.js"></script>
+    <script src="games/crossclimb.js"></script>
+    <script src="games/zip.js"></script>
+    <script src="games/connections.js"></script>
+    <script src="games/math.js"></script>
+    <script src="games/colorfill.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

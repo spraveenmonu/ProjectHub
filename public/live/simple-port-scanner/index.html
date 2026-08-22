@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PortScout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg-dark: #020617;
+      --accent-primary: #0ea5e9;
+      --accent-secondary: #8b5cf6;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --glass-bg: rgba(15, 23, 42, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --font-main: 'Space Grotesk', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: url('portscout_quantum_bg_1777442733032.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #fff;
+      font-family: var(--font-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Ambient Overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent, rgba(2, 6, 23, 0.8));
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Layout Containers */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 350px 1fr 400px;
+      grid-template-rows: 1fr;
+      gap: 20px;
+      padding: 20px;
+      max-width: 1800px;
+      margin: 0 auto;
+      width: 100%;
+      min-height: 0;
+    }
+
+    header {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: var(--glass-bg);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+    }
+
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .system-status {
+      display: flex;
+      gap: 30px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .status-item span {
+      color: var(--accent-primary);
+      margin-left: 5px;
+    }
+
+    /* Sidebar / Controls */
+    .panel {
+      background: var(--glass-bg);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+      /* Critical for CSS Grid scroll behavior */
+    }
+
+    .panel-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #cbd5e1;
+    }
+
+    .sidebar {
+      padding: 20px;
+      gap: 25px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .label {
+      font-size: 12px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--glass-border);
+      border-radius: 6px;
+      padding: 12px 15px;
+      color: #fff;
+      font-family: var(--font-mono);
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent-primary);
+    }
+
+    .preset-btns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .btn-small {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      padding: 8px;
+      color: #94a3b8;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 700;
+      transition: all 0.3s;
+    }
+
+    .btn-small:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .protocol-toggle {
+      display: flex;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .toggle-btn.active {
+      background: var(--accent-primary);
+      color: #000;
+      font-weight: 700;
+    }
+
+    .mt-auto {
+      margin-top: auto;
+    }
+
+    .btn-action {
+      margin-top: auto;
+      padding: 15px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s;
+    }
+
+    .btn-run {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    }
+
+    .btn-run:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+    }
+
+    .btn-stop {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      display: none;
+    }
+
+    .btn-stop:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* Main Visualizer Area */
+    .visualizer-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: 0;
+    }
+
+    .hud-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+
+    .stat-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      padding: 20px;
+      border-radius: var(--radius);
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    .stat-value.success {
+      color: var(--success);
+    }
+
+    .stat-value.danger {
+      color: var(--danger);
+    }
+
+    .canvas-container {
+      flex: 1;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #aetherCanvas {
+      position: absolute;
+      inset: 0;
+    }
+
+    .canvas-overlay {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .scan-pct {
+      font-size: 84px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      opacity: 0.15;
+    }
+
+    .scan-status-text {
+      font-size: 14px;
+      color: var(--accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      margin-top: -15px;
+      animation: pulse 2s infinite;
+    }
+
+    /* Terminal / Log Pane */
+    .log-pane {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .terminal {
+      flex: 1;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.4);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-height: 0;
+    }
+
+    .log-entry {
+      display: flex;
+      gap: 10px;
+      opacity: 0;
+      animation: fadeIn 0.3s forwards;
+    }
+
+    .log-ts {
+      color: #475569;
+    }
+
+    .log-lvl {
+      font-weight: 700;
+      min-width: 50px;
+    }
+
+    .log-lvl.INFO {
+      color: var(--accent-primary);
+    }
+
+    .log-lvl.OPEN {
+      color: var(--success);
+    }
+
+    .log-lvl.WARN {
+      color: var(--warning);
+    }
+
+    .log-lvl.ERR {
+      color: var(--danger);
+    }
+
+    .results-table-wrap {
+      flex: 1;
+      min-height: 0;
+      background: rgba(0, 0, 0, 0.2);
+      border-top: 1px solid var(--glass-border);
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #1e293b;
+      padding: 12px 15px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 1px;
+      z-index: 10;
+    }
+
+    td {
+      padding: 10px 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+    }
+
+    .port-num {
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .status-tag {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .tag-open {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .tag-closed {
+      color: #475569;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateX(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Progress Bar */
+    .progress-track {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    #progressBar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px var(--accent-primary);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="22" y1="12" x2="18" y2="12" />
+          <line x1="6" y1="12" x2="2" y2="12" />
+          <line x1="12" y1="6" x2="12" y2="2" />
+          <line x1="12" y1="22" x2="12" y2="18" />
+        </svg>
+      </div>
+      <div class="logo-text">PortScout</div>
+    </div>
+    <div class="system-status">
+      <div class="status-item">ENGINE <span>STABLE</span></div>
+      <div class="status-item">UPTIME <span id="uptime">00:00:00</span></div>
+      <div class="status-item">SECURITY <span>LEVEL 5</span></div>
+    </div>
+  </header>
+
+  <main class="app-container">
+    <!-- Sidebar -->
+    <aside class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Mission Config</div>
+      </div>
+      <div class="sidebar">
+        <div class="control-group">
+          <label for="target" class="label">Target Coordinate</label>
+          <input type="text" id="target" value="127.0.0.1" spellcheck="false" title="Target IP or Domain" />
+        </div>
+
+        <div class="control-group">
+          <label for="ports" class="label">Port Spectrum</label>
+          <input type="text" id="ports" value="20, 21, 22, 23, 25, 53, 69, 80, 110, 123, 143, 443" spellcheck="false" title="Comma-separated ports" />
+          <div class="preset-btns">
+            <button class="btn-small" onclick="loadPreset('web')">WEB</button>
+            <button class="btn-small" onclick="loadPreset('sys')">SYS</button>
+            <button class="btn-small" onclick="loadPreset('db')">DB</button>
+            <button class="btn-small" onclick="loadPreset('full')">FULL</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="label">Recon Vector</div>
+          <div class="protocol-toggle">
+            <button class="toggle-btn active" onclick="setProtocol('TCP', this)">TCP</button>
+            <button class="toggle-btn" onclick="setProtocol('UDP', this)">UDP</button>
+            <button class="toggle-btn" onclick="setProtocol('BOTH', this)">BOTH</button>
+          </div>
+        </div>
+
+        <div class="control-group mt-auto">
+          <button class="btn-action btn-run" id="runBtn" onclick="startScan()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            Initiate Sweep
+          </button>
+          <button class="btn-action btn-stop" id="stopBtn" onclick="stopScan()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            </svg>
+            Abort Mission
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Visualizer -->
+    <section class="visualizer-pane">
+      <div class="hud-stats">
+        <div class="stat-card">
+          <div class="stat-label">Active Vectors</div>
+          <div class="stat-value success" id="valOpen">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Filtered</div>
+          <div class="stat-value danger" id="valFiltered">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Null Resp</div>
+          <div class="stat-value" id="valNull">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Mission Time</div>
+          <div class="stat-value" id="valTime">0.0s</div>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <div class="canvas-overlay">
+          <div class="scan-pct" id="displayPct">00%</div>
+          <div class="scan-status-text" id="statusText">Awaiting Uplink</div>
+        </div>
+        <div class="progress-track">
+          <div id="progressBar"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terminal & Results -->
+    <section class="panel log-pane">
+      <div class="panel-header">
+        <div class="panel-title">Mission Intelligence</div>
+        <div class="label" id="logCount">0 Events</div>
+      </div>
+      <div class="terminal" id="terminal">
+        <div class="log-entry">
+          <span class="log-ts">00:00:00</span>
+          <span class="log-lvl INFO">INFO</span>
+          <span>Aether Core initialized. Ready for deployment.</span>
+        </div>
+      </div>
+      <div class="results-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Port</th>
+              <th>Identity</th>
+              <th>Vector</th>
+              <th>Outcome</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SERVICES = {
+      20: { name: 'FTP-DATA', desc: 'File Transfer (Data)' },
+      21: { name: 'FTP', desc: 'File Transfer (Control)' },
+      22: { name: 'SSH', desc: 'Secure Shell' },
+      23: { name: 'TELNET', desc: 'Unencrypted Console' },
+      25: { name: 'SMTP', desc: 'Mail Routing' },
+      53: { name: 'DNS', desc: 'Domain Name System' },
+      69: { name: 'TFTP', desc: 'Trivial FTP' },
+      80: { name: 'HTTP', desc: 'Hypertext Transfer' },
+      110: { name: 'POP3', desc: 'Post Office Protocol v3' },
+      123: { name: 'NTP', desc: 'Network Time Protocol' },
+      143: { name: 'IMAP', desc: 'Internet Message Access' },
+      443: { name: 'HTTPS', desc: 'Secure Hypertext' },
+      3306: { name: 'MYSQL', desc: 'Database' },
+      5432: { name: 'POSTGRES', desc: 'Database' },
+      6379: { name: 'REDIS', desc: 'Cache Store' },
+      8080: { name: 'HTTP-ALT', desc: 'Alt Web' },
+      27017: { name: 'MONGODB', desc: 'NoSQL' }
+    };
+
+    let isScanning = false;
+    let isAborted = false;
+    let activeProtocol = 'TCP';
+    let logEntries = 1;
+
+
+
+    // UI Logic
+    function loadPreset(type) {
+      const input = document.getElementById('ports');
+      const presets = {
+        'web': '80, 443, 8080, 8443',
+        'sys': '20, 21, 22, 23, 25, 110, 143',
+        'db': '1433, 3306, 5432, 6379, 27017',
+        'full': '20, 21, 22, 23, 25, 53, 69, 80, 110, 123, 143, 443'
+      };
+      if (presets[type]) input.value = presets[type];
+      log('INFO', `Preset [${type.toUpperCase()}] loaded into spectrum.`);
+    }
+
+    function setProtocol(proto, btn) {
+      activeProtocol = proto;
+      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      log('INFO', `Protocol vector switched to ${proto}.`);
+    }
+
+    function log(level, msg) {
+      const term = document.getElementById('terminal');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      const ts = new Date().toTimeString().split(' ')[0];
+      entry.innerHTML = `<span class="log-ts">${ts}</span><span class="log-lvl ${level}">${level}</span><span>${msg}</span>`;
+      term.appendChild(entry);
+      term.scrollTop = term.scrollHeight;
+      logEntries++;
+      document.getElementById('logCount').innerText = `${logEntries} Events`;
+    }
+
+    function stopScan() {
+      if (!isScanning) return;
+      isAborted = true;
+      log('WARN', 'MISSION ABORT SIGNAL RECEIVED. Terminating vectors...');
+    }
+
+    async function probePort(host, port) {
+      return new Promise((resolve) => {
+        const t0 = performance.now();
+        const img = new Image();
+        const timeout = setTimeout(() => { img.src = ""; resolve(2000); }, 1200);
+        img.onload = () => { clearTimeout(timeout); resolve(performance.now() - t0); };
+        img.onerror = () => {
+          clearTimeout(timeout);
+          const dur = performance.now() - t0;
+          resolve(dur < 1 ? -1 : dur);
+        };
+        img.src = `http://${host}:${port}/probe_${Math.random()}`;
+      });
+    }
+
+    async function startScan() {
+      if (isScanning) return;
+
+      const host = document.getElementById('target').value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+      const ports = document.getElementById('ports').value.split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
+
+      if (!ports.length) { log('ERR', 'No ports defined in spectrum.'); return; }
+
+      isScanning = true;
+      isAborted = false;
+      document.getElementById('runBtn').style.display = 'none';
+      document.getElementById('stopBtn').style.display = 'flex';
+      document.getElementById('resultsBody').innerHTML = '';
+      document.getElementById('statusText').textContent = 'Calibrating...';
+
+      let nOpen = 0, nFilt = 0, nNull = 0;
+      log('INFO', `Initiating ${activeProtocol} sweep on ${host}...`);
+
+      // Calibration
+      let sum = 0;
+      for (let i = 0; i < 3; i++) {
+        if (isAborted) break;
+        sum += await probePort(host, 65534);
+      }
+      const baseline = sum / 3;
+      log('INFO', `Baseline latency locked: ${baseline.toFixed(1)}ms`);
+
+      const t0 = Date.now();
+      const timer = setInterval(() => {
+        document.getElementById('valTime').textContent = ((Date.now() - t0) / 1000).toFixed(1) + 's';
+      }, 100);
+
+      const protos = activeProtocol === 'BOTH' ? ['TCP', 'UDP'] : [activeProtocol];
+
+      for (let i = 0; i < ports.length; i++) {
+        if (isAborted) break;
+        const port = ports[i];
+        const pct = Math.round(((i + 1) / ports.length) * 100);
+        document.getElementById('progressBar').style.width = pct + '%';
+        document.getElementById('displayPct').textContent = pct + '%';
+
+        for (const proto of protos) {
+          if (isAborted) break;
+          document.getElementById('statusText').textContent = `RECON: ${proto} ${port}`;
+          const dur = await probePort(host, port);
+          const svc = SERVICES[port] || { name: 'UNKNOWN', desc: 'Generic' };
+
+          if (dur === -1) {
+            nFilt++;
+            document.getElementById('valFiltered').innerText = nFilt;
+            addResult(port, svc.name, proto, 'DECLINED');
+          } else if (dur > baseline + 25) {
+            nOpen++;
+            document.getElementById('valOpen').innerText = nOpen;
+            log('OPEN', `${proto} ${port} identified as active service.`);
+            addResult(port, svc.name, proto, 'OPEN');
+          } else {
+            nNull++;
+            document.getElementById('valNull').innerText = nNull;
+            addResult(port, svc.name, proto, 'REFUSED');
+          }
+          await new Promise(r => setTimeout(r, 20));
+        }
+      }
+
+      clearInterval(timer);
+      endScan(isAborted ? 'ABORTED' : 'COMPLETE', nOpen);
+    }
+
+    function endScan(status, openCount) {
+      isScanning = false;
+      document.getElementById('runBtn').style.display = 'flex';
+      document.getElementById('stopBtn').style.display = 'none';
+      document.getElementById('statusText').textContent = status === 'ABORTED' ? 'MISSION ABORTED' : 'MISSION COMPLETE';
+      log('INFO', `Mission ${status.toLowerCase()}. Discovered ${openCount} vectors.`);
+    }
+
+    function addResult(port, identity, proto, outcome) {
+      const body = document.getElementById('resultsBody');
+      const row = document.createElement('tr');
+      const tagClass = outcome === 'OPEN' ? 'tag-open' : 'tag-closed';
+      row.innerHTML = `
+        <td><span class="port-num">${port}</span></td>
+        <td>${identity}</td>
+        <td><span class="status-tag">${proto}</span></td>
+        <td><span class="status-tag ${tagClass}">${outcome}</span></td>
+      `;
+      body.appendChild(row);
+      body.parentElement.parentElement.scrollTop = body.parentElement.parentElement.scrollHeight;
+    }
+
+    // Uptime Clock
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('uptime').textContent = now.toTimeString().split(' ')[0];
+    }, 1000);
+  </script>
+</body>
+
+</html>

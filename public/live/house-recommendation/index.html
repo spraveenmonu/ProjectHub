@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="AI-powered House Recommendation System — Find your dream home using preference matching and content-based filtering algorithms. Browse 50+ curated Indian property listings.">
+  <meta name="keywords"
+    content="house recommendation, property search, real estate, AI recommendations, content-based filtering, preference matching">
+  <meta name="author" content="AI & Data Science Final Year Project">
+  <title>HomeMatch AI</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+  <!-- ══ Background Decoration ══ -->
+  <div class="bg-decoration">
+    <div class="bg-orb bg-orb--1"></div>
+    <div class="bg-orb bg-orb--2"></div>
+    <div class="bg-orb bg-orb--3"></div>
+  </div>
+
+  <!-- ══ Navigation ══ -->
+  <nav class="navbar" id="navbar">
+    <div class="container nav-content">
+      <a href="#" class="nav-brand">
+        <div class="nav-brand-icon">🏠</div>
+        <div class="nav-brand-text">Home<span>Match</span> AI</div>
+      </a>
+      <div class="nav-menu-wrapper">
+        <div class="theme-selector-container">
+          <select id="theme-selector" class="theme-select" title="Change Theme">
+            <option value="midnight-amber">Midnight Amber (Dark)</option>
+            <option value="ocean-breeze">Ocean Breeze (Light)</option>
+            <option value="emerald-forest">Emerald Forest (Dark)</option>
+            <option value="aether-violet">Aether Violet (Light)</option>
+          </select>
+        </div>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#hero">Home</a></li>
+          <li><a href="#blueprint-section">Design Home</a></li>
+        </ul>
+      </div>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ══ Hero Section ══ -->
+  <section class="hero" id="hero">
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        AI-Powered Home Design
+      </div>
+      <h1 class="hero-title">
+        Design Your<br>
+        <span class="gradient-text">Dream Home</span>
+      </h1>
+      <p class="hero-subtitle">
+        Enter your plot dimensions, budget, and configuration, and let our engine instantly generate customized floor plans, construction cost breakdowns, and Vastu advice.
+      </p>
+      <div class="hero-cta-container">
+        <a href="#blueprint-section" class="btn btn-primary hero-cta-btn">Start Designing Now →</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value">Instant</div>
+          <div class="hero-stat-label">Floor Plans</div>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">Detailed</div>
+          <div class="hero-stat-label">Cost Estimates</div>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">Vastu</div>
+          <div class="hero-stat-label">Compliant</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+  <!-- ══ Design Your Home / Blueprint Section ══ -->
+  <section class="section blueprint-section" id="blueprint-section">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">🏗️ Design Studio</span>
+        <h2 class="section-title">Design Your Dream Home</h2>
+        <p class="section-subtitle">Got a plot and budget? Enter your resources below and we'll generate a floor plan, architecture recommendations, cost breakdown, and Vastu tips.</p>
+      </div>
+
+      <div id="blueprint-form">
+        <!-- Row 1: Plot Dimensions & Budget -->
+        <div class="bp-input-grid reveal">
+          <!-- Plot Dimensions -->
+          <div class="bp-input-group">
+            <label class="bp-input-label">📐 Plot Dimensions (in feet)</label>
+            <div class="bp-dimensions-row">
+              <input type="number" class="bp-dim-input" id="bp-plot-width" value="30" min="15" max="200" placeholder="Width" title="Plot Width in feet">
+              <span class="bp-dim-x">×</span>
+              <input type="number" class="bp-dim-input" id="bp-plot-depth" value="40" min="15" max="200" placeholder="Depth" title="Plot Depth in feet">
+            </div>
+            <div class="bp-area-badge">📏 Total Area: <span id="bp-area-display">1,200 sq.ft</span></div>
+          </div>
+
+          <!-- Budget -->
+          <div class="bp-input-group">
+            <label class="bp-input-label" for="bp-budget-slider">💰 Construction Budget</label>
+            <div class="range-slider-container">
+              <input type="range" class="range-slider" id="bp-budget-slider"
+                min="500000" max="50000000" value="5000000" step="500000" title="Construction Budget">
+              <div class="range-values">
+                <span>₹5 L</span>
+                <span id="bp-budget-display">₹50 L</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: BHK & Floors -->
+        <div class="bp-input-grid reveal">
+          <div class="bp-input-group">
+            <label class="bp-input-label">🛏️ BHK Configuration</label>
+            <div class="bp-tag-grid">
+              <span class="bp-bhk-tag" data-bhk="1">1 BHK</span>
+              <span class="bp-bhk-tag active" data-bhk="2">2 BHK</span>
+              <span class="bp-bhk-tag" data-bhk="3">3 BHK</span>
+              <span class="bp-bhk-tag" data-bhk="4">4 BHK</span>
+              <span class="bp-bhk-tag" data-bhk="5">5 BHK</span>
+            </div>
+          </div>
+
+          <div class="bp-input-group">
+            <label class="bp-input-label">🏢 Number of Floors</label>
+            <div class="bp-tag-grid">
+              <span class="bp-floor-tag active" data-floor="1">G (Ground)</span>
+              <span class="bp-floor-tag" data-floor="2">G + 1</span>
+              <span class="bp-floor-tag" data-floor="3">G + 2</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Architecture Style -->
+        <div class="bp-input-group bp-style-group reveal">
+          <label class="bp-input-label">🎨 Architecture Style</label>
+          <div class="bp-style-grid">
+            <div class="bp-style-option active" data-style="Modern">
+              <div class="bp-style-option-icon">🏙️</div>
+              <div class="bp-style-option-name">Modern</div>
+              <div class="bp-style-option-cost">~₹2,200/sq.ft</div>
+            </div>
+            <div class="bp-style-option" data-style="Traditional">
+              <div class="bp-style-option-icon">🛕</div>
+              <div class="bp-style-option-name">Traditional</div>
+              <div class="bp-style-option-cost">~₹1,800/sq.ft</div>
+            </div>
+            <div class="bp-style-option" data-style="Contemporary">
+              <div class="bp-style-option-icon">🏗️</div>
+              <div class="bp-style-option-name">Contemporary</div>
+              <div class="bp-style-option-cost">~₹2,500/sq.ft</div>
+            </div>
+            <div class="bp-style-option" data-style="Minimalist">
+              <div class="bp-style-option-icon">🧊</div>
+              <div class="bp-style-option-name">Minimalist</div>
+              <div class="bp-style-option-cost">~₹1,600/sq.ft</div>
+            </div>
+            <div class="bp-style-option" data-style="Colonial">
+              <div class="bp-style-option-icon">🏛️</div>
+              <div class="bp-style-option-name">Colonial</div>
+              <div class="bp-style-option-cost">~₹2,000/sq.ft</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="bp-actions reveal">
+          <button class="btn btn-primary btn-generate" id="bp-generate-btn">
+            🏗️ Generate Blueprint & Design
+          </button>
+          <button class="btn btn-secondary" id="bp-reset-btn">
+            🔄 Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Blueprint Results (hidden until generated) -->
+      <div id="blueprint-results"></div>
+    </div>
+  </section>
+
+  <!-- ══ Footer ══ -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        🏠 Home<span>Match</span> AI
+      </div>
+      <p class="footer-text">
+        Final Year Project — AI & Data Science | House Recommendation System
+      </p>
+      <ul class="footer-links">
+        <li><a href="#hero">Home</a></li>
+        <li><a href="#blueprint-section">Design Home</a></li>
+      </ul>
+      <p class="footer-text footer-copyright">
+        © 2026 HomeMatch AI. Built for academic purposes.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ══ Property Detail Modal ══ -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Property Details</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Chatbot Assistant ══ -->
+  <button class="chat-toggle-btn" id="chat-toggle-btn" title="Ask AI Assistant">💬</button>
+  <div class="chat-window" id="chat-window">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-header-avatar">🤖</div>
+        <div>
+          <h4 class="chat-header-title">HomeMatch Assistant</h4>
+          <span class="chat-header-status">Online · AI Agent</span>
+        </div>
+      </div>
+      <button class="chat-close-btn" id="chat-close-btn">✕</button>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-message bot">
+        Hello! I am your AI Design Assistant. Feel free to ask me anything about plot dimensions, Vastu, construction costs, materials, or architectural styles!
+      </div>
+    </div>
+    <div class="chat-input-container">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Type your query here..." aria-label="Chat input">
+      <button class="chat-send-btn" id="chat-send-btn">Send</button>
+    </div>
+  </div>
+
+  <!-- ══ Toast Container ══ -->
+  <div class="toast-container"></div>
+
+  <!-- ══ Scripts ══ -->
+  <script src="js/data.js"></script>
+  <script src="js/recommendation.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/blueprint.js?v=10"></script>
+  <script src="js/chatbot.js"></script>
+
+</body>
+
+</html>

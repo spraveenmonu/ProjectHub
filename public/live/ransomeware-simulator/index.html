@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ransomware Defense Dashboard — An interactive educational tool for understanding ransomware attacks, kill chains, incident response, and cybersecurity defense strategies.">
+  <title>Ransomware Defense Dashboard — Cybersecurity Education</title>
+  <link rel="stylesheet" href="index.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+
+  <!-- Animated Background -->
+  <div class="bg-effects">
+    <canvas id="particle-canvas"></canvas>
+    <div class="bg-gradient-orb bg-orb-1"></div>
+    <div class="bg-gradient-orb bg-orb-2"></div>
+    <div class="bg-gradient-orb bg-orb-3"></div>
+    <div class="scanlines"></div>
+  </div>
+
+  <!-- Ethical Disclaimer Banner -->
+  <div class="disclaimer-banner" id="disclaimer-banner">
+    <div class="disclaimer-inner">
+      <span class="disclaimer-pulse"></span>
+      <span class="disclaimer-icon">⚠️</span>
+      <span>FOR EDUCATIONAL USE ONLY — This dashboard is a non-destructive training tool. No files are encrypted, accessed, or modified. All data is simulated.</span>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="nav" id="main-nav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="#">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <div class="brand-icon-glow"></div>
+        </div>
+        <span class="brand-text">Ransom<span class="brand-accent">Defense</span></span>
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li><button class="nav-link active" data-section="hero" id="nav-home"><span class="nav-icon">🏠</span> Home</button></li>
+        <li><button class="nav-link" data-section="killchain" id="nav-killchain"><span class="nav-icon">⛓️</span> Kill Chain</button></li>
+        <li><button class="nav-link" data-section="simulation" id="nav-simulation"><span class="nav-icon">🎯</span> Attack Sim</button></li>
+        <li><button class="nav-link" data-section="profiles" id="nav-profiles"><span class="nav-icon">🦠</span> Profiles</button></li>
+        <li><button class="nav-link" data-section="response" id="nav-response"><span class="nav-icon">🚨</span> IR Playbook</button></li>
+        <li><button class="nav-link" data-section="defense" id="nav-defense"><span class="nav-icon">🛡️</span> Defenses</button></li>
+
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <!-- ═══ HERO SECTION ═══ -->
+    <section class="section active" id="section-hero">
+      <div class="hero">
+        <div class="hero-badge">
+          <span class="badge-pulse"></span>
+          <span class="badge-text">EDUCATIONAL CYBERSECURITY TOOL</span>
+        </div>
+        <h1 class="hero-title">
+          <span class="hero-line">Ransomware Defense</span>
+          <span class="hero-line hero-line-accent">Dashboard</span>
+        </h1>
+        <p class="hero-subtitle">
+          Understand how ransomware attacks work, practice incident response, and learn defense strategies — 
+          all through interactive visualizations with <span class="text-glow">zero risk</span>.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══ KILL CHAIN SECTION ═══ -->
+    <section class="section" id="section-killchain">
+      <div class="section-header">
+        <div class="section-badge">⛓️ ATTACK LIFECYCLE</div>
+        <h2>Ransomware Kill Chain</h2>
+        <p>Explore each stage of a ransomware attack lifecycle. Click any stage to see detailed techniques, MITRE ATT&CK mappings, and recommended defenses.</p>
+      </div>
+
+      <div class="killchain-timeline" id="killchain-timeline">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="killchain-detail card" id="killchain-detail">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ═══ ATTACK SIMULATION SECTION ═══ -->
+    <section class="section" id="section-simulation">
+      <div class="section-header">
+        <div class="section-badge">🎯 VISUAL SIMULATION</div>
+        <h2>Attack Simulation</h2>
+        <p>Watch how ransomware targets and impacts files across an organization. This is a visual-only simulation — no real files are touched.</p>
+      </div>
+
+      <div class="sim-controls" id="sim-controls">
+        <button class="sim-btn start" id="btn-start-sim">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Start Simulation
+        </button>
+        <button class="sim-btn" id="btn-pause-sim" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          Pause
+        </button>
+        <button class="sim-btn reset" id="btn-reset-sim">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Reset
+        </button>
+        <div class="sim-speed">
+          <span>Speed</span>
+          <input type="range" id="sim-speed" min="1" max="5" value="3" title="Simulation speed">
+          <span id="speed-label" class="speed-value">3x</span>
+        </div>
+        <div class="sim-progress">
+          <div class="sim-progress-ring">
+            <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" class="ring-bg"/><circle cx="22" cy="22" r="18" class="ring-fill" id="sim-ring-fill"/></svg>
+            <span class="ring-text" id="sim-pct">0%</span>
+          </div>
+          <div class="sim-progress-info">
+            <span class="sim-label">Files Affected</span>
+            <span class="sim-counter" id="sim-counter">0 / 20</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="file-grid" id="file-grid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ═══ RANSOMWARE PROFILES SECTION ═══ -->
+    <section class="section" id="section-profiles">
+      <div class="section-header">
+        <div class="section-badge">🦠 THREAT INTELLIGENCE</div>
+        <h2>Ransomware Profiles</h2>
+        <p>Study major ransomware families, their techniques, impact, and the lessons they teach about defense.</p>
+      </div>
+
+      <div class="profiles-grid" id="profiles-grid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ═══ INCIDENT RESPONSE SECTION ═══ -->
+    <section class="section" id="section-response">
+      <div class="section-header">
+        <div class="section-badge">🚨 RESPONSE FRAMEWORK</div>
+        <h2>Incident Response Playbook</h2>
+        <p>Practice the 5-phase incident response process. Check off each step as you work through the scenario.</p>
+      </div>
+
+      <div class="ir-progress-overview" id="ir-overview">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="ir-phases" id="ir-phases">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ═══ DEFENSE STRATEGIES SECTION ═══ -->
+    <section class="section" id="section-defense">
+      <div class="section-header">
+        <div class="section-badge">🛡️ SECURITY CONTROLS</div>
+        <h2>Defense Strategies</h2>
+        <p>Essential controls and best practices to defend against ransomware attacks, ordered by priority.</p>
+      </div>
+
+      <div class="defense-grid" id="defense-grid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

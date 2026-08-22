@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PASSWORD ANALYZER</title>
+    <style>
+        :root {
+            --neon-purple: #bc13fe;
+            --neon-blue: #00d2ff;
+            --matrix-green: #00ff41;
+            --deep-space: #05010a;
+            --nebula-glow: rgba(188, 19, 254, 0.2);
+        }
+
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--neon-blue);
+            background: var(--deep-space);
+        }
+
+        /* Background Visuals */
+        canvas { position: fixed; top: 0; left: 0; z-index: -2; opacity: 0.6; }
+        .scanline {
+            position: fixed; width: 100%; height: 4px;
+            background: rgba(0, 255, 65, 0.05);
+            animation: scan 6s linear infinite; z-index: -1;
+        }
+        @keyframes scan { 0% { top: -5%; } 100% { top: 105%; } }
+
+        /* Main Container */
+        .container {
+            max-width: 90%;
+            width: 600px;
+            margin: 30px auto;
+            text-align: center;
+            background: rgba(5, 1, 10, 0.9);
+            padding: 20px;
+            border: 1px solid var(--neon-purple);
+            box-shadow: 0 0 25px var(--nebula-glow);
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            text-shadow: 0 0 15px var(--neon-purple);
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            color: var(--neon-purple);
+        }
+
+        /* Input Area */
+        .input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        input {
+            background: #000;
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 15px;
+            font-size: 1.1rem;
+            width: 85%;
+            outline: none;
+            font-family: monospace;
+            border-radius: 4px;
+        }
+        #toggleEye {
+            position: absolute;
+            right: 10%;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        /* Strength Bar */
+        .meter-container {
+            width: 90%;
+            height: 8px;
+            border: 1px solid rgba(188, 19, 254, 0.3);
+            margin: 20px auto;
+            background: #111;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #fill { height: 100%; width: 0%; transition: 0.6s ease; background: #ff0055; }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .cyber-btn {
+            background: transparent;
+            border: 1px solid var(--neon-purple);
+            color: var(--neon-purple);
+            padding: 12px 24px;
+            cursor: pointer;
+            font-family: monospace;
+            text-transform: uppercase;
+            transition: 0.3s;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        .cyber-btn:hover, .cyber-btn:active {
+            background: var(--neon-purple);
+            color: #fff;
+            box-shadow: 0 0 20px var(--neon-purple);
+        }
+
+        /* Terminal Output */
+        .terminal {
+            text-align: left;
+            background: rgba(15, 0, 25, 0.8);
+            padding: 15px;
+            border-left: 3px solid var(--neon-blue);
+            min-height: 100px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        /* History Section with Delete Feature */
+        .history {
+            margin-top: 25px;
+            border-top: 1px solid rgba(188, 19, 254, 0.2);
+            padding-top: 15px;
+            text-align: left;
+            max-height: 130px;
+            overflow-y: auto;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            color: var(--neon-purple);
+            font-weight: bold;
+        }
+        .delete-btn {
+            background: transparent;
+            border: 1px solid #ff0055;
+            color: #ff0055;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            border-radius: 3px;
+        }
+        .delete-btn:hover {
+            background: #ff0055;
+            color: #fff;
+        }
+        .history-item { color: rgba(0, 210, 255, 0.6); font-size: 0.75rem; margin-bottom: 5px; }
+        .history-item span { color: var(--neon-blue); }
+
+        .suggestion { color: #ff00ff; display: block; margin-top: 5px; font-weight: bold; }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--neon-purple); }
+    </style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+<div class="scanline"></div>
+
+<div class="container">
+    <h1>PASSWORD_ANALYZER</h1>
+
+    <div class="input-wrapper">
+        <input type="password" id="password" placeholder="ENTER YOUR PASSWORD...">
+        <span id="toggleEye">👁️</span>
+    </div>
+
+    <div class="meter-container"><div id="fill"></div></div>
+
+    <div class="btn-group">
+        <button class="cyber-btn" onclick="generatePass()">Generate</button>
+        <button class="cyber-btn" onclick="copyPass()">Copy</button>
+    </div>
+
+    <div class="terminal" id="output">
+        >>>ENTER YOUR PAASWORD...<br>
+</div>
+
+    <div class="history" id="historyLog">
+        <div class="history-header">
+            <span>[ EVENT_HORIZON_LOG ]</span>
+            <button class="delete-btn" onclick="clearHistory()">Clear Log</button>
+        </div>
+        <div id="logContent"></div>
+    </div>
+</div>
+
+<script>
+/* 1. GREEN MATRIX BACKGROUND */
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+const letters = "010101ABCDEFHIJKLMNPQRSTUVXYZ@#$%&*".split("");
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+const drops = Array(Math.floor(columns)).fill(1);
+
+function drawMatrix() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#00ff41"; 
+    ctx.font = fontSize + "px monospace";
+    drops.forEach((y, i) => {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        ctx.fillText(text, i * fontSize, y * fontSize);
+        if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+    });
+}
+setInterval(drawMatrix, 50);
+
+/* 2. CORE LOGIC */
+const passInput = document.getElementById("password");
+const output = document.getElementById("output");
+const fill = document.getElementById("fill");
+const logContent = document.getElementById("logContent");
+
+passInput.addEventListener("input", analyze);
+
+function analyze() {
+    const val = passInput.value;
+    if (!val) { 
+        output.innerHTML = ">>> STARMAP ONLINE..."; 
+        fill.style.width = "0%"; 
+        return; 
+    }
+
+    let pool = 0;
+    if (/[a-z]/.test(val)) pool += 26;
+    if (/[A-Z]/.test(val)) pool += 26;
+    if (/[0-9]/.test(val)) pool += 10;
+    if (/[^A-Za-z0-9]/.test(val)) pool += 32;
+
+    const entropy = Math.floor(val.length * Math.log2(pool || 1));
+    const combinations = Math.pow(pool, val.length);
+    const crackTimeSec = (0.5 * combinations) / 1e10; 
+
+    const strength = Math.min((entropy / 100) * 100, 100);
+    fill.style.width = strength + "%";
+    fill.style.background = strength < 40 ? "#ff0055" : strength < 75 ? "#bc13fe" : "#00d2ff";
+
+    let suggestions = [];
+    if (val.length < 12) suggestions.push("Extend sequence length");
+    if (pool < 60) suggestions.push("Add celestial symbols");
+
+    output.innerHTML = `
+        >>> ENTROPY: ${entropy} bits<br>
+        >>> CRACK TIME: ${formatTime(crackTimeSec)}<br>
+        >>> STATUS: ${entropy < 50 ? 'UNSTABLE' : 'STABLE'}<br>
+        ${suggestions.map(s => `<span class="suggestion">! ${s}</span>`).join("")}
+    `;
+
+    if (val.length > 8) updateHistory(val, entropy);
+}
+
+function formatTime(sec) {
+    if (sec < 60) return "Instant";
+    if (sec < 31536000) return (sec / 86400).toFixed(1) + " Days";
+    if (sec < 3153600000) return (sec / 31536000).toFixed(1) + " Years";
+    return "Lightyears";
+}
+
+function generatePass() {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let generated = "";
+    const cryptoArray = new Uint32Array(16);
+    window.crypto.getRandomValues(cryptoArray);
+    for (let i = 0; i < 16; i++) {
+        generated += chars[cryptoArray[i] % chars.length];
+    }
+    passInput.value = generated;
+    analyze();
+}
+
+function copyPass() {
+    if (!passInput.value) return;
+    navigator.clipboard.writeText(passInput.value);
+    const oldHtml = output.innerHTML;
+    output.innerHTML = "<span style='color:#00d2ff'>>>> DATA BEAMED TO CLIPBOARD</span>";
+    setTimeout(() => output.innerHTML = oldHtml, 1500);
+}
+
+function updateHistory(pass, entropy) {
+    const time = new Date().toLocaleTimeString();
+    const masked = pass.substring(0, 3) + "****";
+    const entry = document.createElement("div");
+    entry.className = "history-item";
+    entry.innerHTML = `[${time}] SIGNAL: <span>${masked}</span> | BITS: <span>${entropy}</span>`;
+    
+    if (logContent.children.length > 5) logContent.removeChild(logContent.lastChild);
+    logContent.insertBefore(entry, logContent.firstChild);
+}
+
+/* NEW FEATURE: CLEAR HISTORY */
+function clearHistory() {
+    logContent.innerHTML = "<div class='history-item' style='opacity:0.5'>>>> LOG PURGED...</div>";
+    setTimeout(() => {
+        logContent.innerHTML = "";
+    }, 1000);
+}
+
+document.getElementById("toggleEye").addEventListener("click", function() {
+    passInput.type = passInput.type === "password" ? "text" : "password";
+    this.textContent = passInput.type === "password" ? "👁️" : "🙈";
+});
+</script>
+</body>
+</html>

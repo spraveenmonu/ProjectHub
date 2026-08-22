@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="CyberShield Interactive Attack Simulator - An educational cybersecurity dashboard demonstrating 49 common cyber attacks with real-time animations and simulations.">
+    <meta name="keywords"
+        content="cybersecurity, cyber attacks, educational, simulation, DDoS, phishing, SQL injection, XSS, ransomware, brute force, dictionary attack, hoax attack">
+    <meta name="author" content="CyberShield">
+    <title>CyberShield</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <div class="scanline-overlay"></div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">
+            <div class="shield-icon">
+                <svg viewBox="0 0 40 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 0L40 8V20C40 33.3 31.6 41.2 20 44C8.4 41.2 0 33.3 0 20V8L20 0Z" fill="url(#shieldGrad)"
+                        stroke="var(--cyan)" stroke-width="1.5" />
+                    <path d="M18 28L12 22L14 20L18 24L26 16L28 18L18 28Z" fill="var(--cyan)" />
+                    <defs>
+                        <linearGradient id="shieldGrad" x1="0" y1="0" x2="40" y2="44">
+                            <stop offset="0%" stop-color="rgba(0,240,255,0.15)" />
+                            <stop offset="100%" stop-color="rgba(139,92,246,0.15)" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <span class="brand-text">CYBER<span class="brand-accent">SHIELD</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="#dashboard" class="nav-link active" data-section="dashboard">Dashboard</a>
+            <a href="#attacks" class="nav-link" data-section="attacks">Attack Lab</a>
+            <a href="#about" class="nav-link" data-section="about">About</a>
+        </div>
+        <div class="nav-status">
+            <div class="status-dot pulse"></div>
+            <span class="status-text">EDUCATIONAL MODE</span>
+        </div>
+    </nav>
+
+    <header class="hero" id="dashboard">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-line">INTERACTIVE</span>
+                <span class="title-line gradient-text">CYBER ATTACK</span>
+                <span class="title-line">SIMULATOR</span>
+            </h1>
+            <p class="hero-subtitle" id="typed-text"></p>
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-attacks">49</div>
+                    <div class="stat-label">Attack Types</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-simulations">
+                        <span class="counter" data-target="2849">0</span>
+                    </div>
+                    <div class="stat-label">Simulations Run</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-threats">
+                        <span class="counter" data-target="156">0</span>K
+                    </div>
+                    <div class="stat-label">Threats Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value safe-text">100%</div>
+                    <div class="stat-label">Safe Environment</div>
+                </div>
+            </div>
+            <a href="#attacks" class="hero-cta">
+                <span>Enter Attack Lab</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+        <div class="hero-visual">
+            <div class="cyber-globe" id="cyber-globe"></div>
+        </div>
+    </header>
+
+    <div class="threat-banner">
+        <div class="threat-marquee">
+            <span class="threat-item"><span class="dot red"></span> ACTIVE THREAT SIMULATION </span>
+            <span class="threat-item"><span class="dot yellow"></span> SQL INJECTION DETECTED </span>
+            <span class="threat-item"><span class="dot green"></span> FIREWALL STATUS: ACTIVE </span>
+            <span class="threat-item"><span class="dot red"></span> DDoS ATTACK IN PROGRESS </span>
+            <span class="threat-item"><span class="dot yellow"></span> PHISHING EMAIL DETECTED </span>
+            <span class="threat-item"><span class="dot red"></span> RANSOMWARE ALERT </span>
+            <span class="threat-item"><span class="dot green"></span> HONEYPOT MONITORING ACTIVE </span>
+            <span class="threat-item"><span class="dot yellow"></span> BRUTE FORCE ATTEMPT BLOCKED </span>
+            <span class="threat-item"><span class="dot red"></span> ACTIVE THREAT SIMULATION </span>
+            <span class="threat-item"><span class="dot yellow"></span> SQL INJECTION DETECTED </span>
+            <span class="threat-item"><span class="dot green"></span> FIREWALL STATUS: ACTIVE </span>
+            <span class="threat-item"><span class="dot red"></span> DDoS ATTACK IN PROGRESS </span>
+            <span class="threat-item"><span class="dot yellow"></span> PHISHING EMAIL DETECTED </span>
+            <span class="threat-item"><span class="dot red"></span> RANSOMWARE ALERT </span>
+            <span class="threat-item"><span class="dot green"></span> HONEYPOT MONITORING ACTIVE </span>
+            <span class="threat-item"><span class="dot yellow"></span> BRUTE FORCE ATTEMPT BLOCKED </span>
+        </div>
+    </div>
+
+    <section class="attacks-section" id="attacks">
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="section-icon">🛡️</span>
+                Attack Simulation Lab
+            </h2>
+            <p class="section-subtitle">Select an attack vector to launch an interactive educational simulation</p>
+            <div class="filter-bar">
+                <button class="filter-btn active" data-filter="all">All Attacks</button>
+                <button class="filter-btn" data-filter="network">Network</button>
+                <button class="filter-btn" data-filter="web">Web</button>
+                <button class="filter-btn" data-filter="social">Social</button>
+                <button class="filter-btn" data-filter="malware">Malware</button>
+                <button class="filter-btn" data-filter="virus">Viruses</button>
+                <button class="filter-btn" data-filter="worm">Worms</button>
+                <button class="filter-btn" data-filter="trojan">Trojans</button>
+                <button class="filter-btn" data-filter="security">Security</button>
+            </div>
+        </div>
+
+        <div class="attacks-grid" id="attacks-grid"></div>
+    </section>
+
+    <div class="sim-modal" id="sim-modal">
+        <div class="sim-modal-content">
+            <div class="sim-header">
+                <div class="sim-header-left">
+                    <div class="sim-icon" id="sim-icon"></div>
+                    <div>
+                        <h2 class="sim-title" id="sim-title"></h2>
+                        <span class="sim-severity" id="sim-severity"></span>
+                    </div>
+                </div>
+                <div class="sim-header-right">
+                    <div class="sim-controls">
+                        <button class="sim-btn start-btn" id="sim-start">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3" />
+                            </svg>
+                            Start
+                        </button>
+                        <button class="sim-btn stop-btn" id="sim-stop" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <rect x="6" y="4" width="4" height="16" />
+                                <rect x="14" y="4" width="4" height="16" />
+                            </svg>
+                            Stop
+                        </button>
+                        <button class="sim-btn reset-btn" id="sim-reset">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="23 4 23 10 17 10" />
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                            </svg>
+                            Reset
+                        </button>
+                    </div>
+                    <button class="sim-close" id="sim-close" aria-label="Close Simulation" title="Close Simulation">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sim-body">
+                <div class="sim-left-panel">
+                    <div class="sim-description" id="sim-description"></div>
+                    <div class="sim-steps">
+                        <h3 class="panel-title">Attack Flow</h3>
+                        <div class="steps-list" id="sim-steps-list"></div>
+                    </div>
+                </div>
+
+                <div class="sim-center-panel">
+                    <div class="sim-visualization" id="sim-visualization">
+                        <canvas id="sim-canvas"></canvas>
+                        <div class="sim-dom-layer" id="sim-dom-layer"></div>
+                    </div>
+                    <div class="sim-progress-bar">
+                        <div class="progress-fill" id="sim-progress"></div>
+                        <span class="progress-label" id="sim-progress-label">0%</span>
+                    </div>
+                </div>
+
+                <div class="sim-right-panel">
+                    <div class="sim-stats">
+                        <h3 class="panel-title">Live Stats</h3>
+                        <div class="stats-list" id="sim-stats-list"></div>
+                    </div>
+                    <div class="sim-defense">
+                        <h3 class="panel-title">🛡️ Defense Tips</h3>
+                        <div class="defense-list" id="sim-defense-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sim-footer">
+                <div class="sim-terminal" id="sim-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot red"></span>
+                        <span class="terminal-dot yellow"></span>
+                        <span class="terminal-dot green"></span>
+                        <span class="terminal-title">attack_log.sh</span>
+                    </div>
+                    <div class="terminal-body" id="sim-terminal-body">
+                        <div class="terminal-line">> CyberShield v2.0 — Attack Simulation Engine Ready</div>
+                        <div class="terminal-line">> Awaiting simulation launch...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="about-section" id="about">
+        <div class="about-content">
+            <div class="about-card">
+                <div class="about-icon">🎓</div>
+                <h3>Educational Purpose</h3>
+                <p>This simulator is designed exclusively for educational purposes, helping students and professionals
+                    understand cyber threats in a safe, controlled environment.</p>
+            </div>
+            <div class="about-card">
+                <div class="about-icon">🔒</div>
+                <h3>100% Safe</h3>
+                <p>No real attacks are performed. All simulations use visual animations and fake data to demonstrate
+                    attack concepts without any actual network activity.</p>
+            </div>
+            <div class="about-card">
+                <div class="about-icon">🧠</div>
+                <h3>Learn &amp; Defend</h3>
+                <p>Each attack simulation includes defense strategies and countermeasures, empowering you to protect
+                    systems against real-world cyber threats.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="shield-icon small">
+                    <svg viewBox="0 0 40 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 0L40 8V20C40 33.3 31.6 41.2 20 44C8.4 41.2 0 33.3 0 20V8L20 0Z"
+                            fill="url(#shieldGrad2)" stroke="var(--cyan)" stroke-width="1.5" />
+                        <path d="M18 28L12 22L14 20L18 24L26 16L28 18L18 28Z" fill="var(--cyan)" />
+                        <defs>
+                            <linearGradient id="shieldGrad2" x1="0" y1="0" x2="40" y2="44">
+                                <stop offset="0%" stop-color="rgba(0,240,255,0.15)" />
+                                <stop offset="100%" stop-color="rgba(139,92,246,0.15)" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <span>CYBER<span class="brand-accent">SHIELD</span></span>
+            </div>
+            <div class="footer-disclaimer">
+                <p>⚠️ <strong>Educational Use Only</strong> — This tool is designed for learning and seminar
+                    presentations. No actual cyber attacks are performed.</p>
+            </div>
+            <div class="footer-copy">
+                <p>Built by Spraveenmonu</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/particles.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

@@ -1,17 +1,22 @@
 #!/usr/bin/env node
 // ============================================================================
-// BUILD SCRIPT — Pre-generates static project data for Vercel deployment
-// Run: node build.js
-// Output: public/projects-data.json
+// PROJECT HUB BUILD SCRIPT
+// Generates:
+// 1. public/projects-data.js (embedded window.PROJECTS_DATA with full source trees)
+// 2. public/projects-data.json
+// 3. public/live/<project_slug>/ (copies runnable web apps for live in-browser preview)
 // ============================================================================
 
 const fs = require('fs');
 const path = require('path');
 
 const PROJECTS_DIR = path.resolve('D:\\Projects\\Spraveenmonu');
-const OUTPUT_FILE = path.join(__dirname, 'public', 'projects-data.json');
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const LIVE_DIR = path.join(PUBLIC_DIR, 'live');
+const OUTPUT_JS = path.join(PUBLIC_DIR, 'projects-data.js');
+const OUTPUT_JSON = path.join(PUBLIC_DIR, 'projects-data.json');
 
-// Projects to hide from the dashboard (mirrors server.js EXCLUDED_PROJECTS)
+// Projects excluded from cockpit
 const EXCLUDED_PROJECTS = new Set([
   'ProjectHub',
   '.git',
@@ -23,9 +28,39 @@ const EXCLUDED_PROJECTS = new Set([
   'Hackathon Project'
 ]);
 
-// ============================================================================
-// DETECTION HELPERS (same logic as server.js)
-// ============================================================================
+// Ignored folders during file tree scan
+const IGNORED_DIRS = new Set([
+  'node_modules',
+  '.git',
+  'venv',
+  '.venv',
+  '__pycache__',
+  '.idea',
+  '.vscode',
+  '.data'
+]);
+
+// Extensions recognized for code viewing
+const CODE_EXTENSIONS = {
+  '.js': 'javascript',
+  '.jsx': 'javascript',
+  '.ts': 'typescript',
+  '.tsx': 'typescript',
+  '.py': 'python',
+  '.html': 'html',
+  '.htm': 'html',
+  '.css': 'css',
+  '.scss': 'css',
+  '.json': 'json',
+  '.md': 'markdown',
+  '.txt': 'plaintext',
+  '.sh': 'shell',
+  '.bat': 'shell',
+  '.vbs': 'vbscript',
+  '.yaml': 'yaml',
+  '.yml': 'yaml',
+  '.csv': 'csv'
+};
 
 function detectTechStack(projectPath, files) {
   const stack = [];
@@ -54,7 +89,6 @@ function detectTechStack(projectPath, files) {
     }
   }
 
-  // Python detection
   const pyFiles = files.filter(f => f.endsWith('.py'));
   if (pyFiles.length > 0) {
     pyFiles.forEach(pf => {
@@ -88,14 +122,11 @@ function detectTechStack(projectPath, files) {
 
 function detectCategory(name, techStack, files) {
   const nameLower = name.toLowerCase();
-
   const securityKeywords = ['phishing', 'vulnerability', 'malware', 'firewall', 'ransomware', 'ransomeware', 'cyber', 'port scanner', 'password', 'scanner'];
   if (securityKeywords.some(kw => nameLower.includes(kw))) return 'security';
 
   if (techStack.some(t => ['Flask', 'FastAPI', 'Django', 'Streamlit', 'Python', 'Pandas', 'Scikit-learn', 'Pygame'].includes(t))) return 'python';
-
   if (techStack.some(t => ['React', 'Vue', 'Svelte', 'Next.js', 'Vite', 'Express', 'Node.js', 'Socket.IO'].includes(t))) return 'webapp';
-
   if (files.includes('index.html')) return 'static';
 
   return 'other';
@@ -112,7 +143,7 @@ function getCategoryIcon(category) {
 }
 
 function getProjectDescription(projectPath, files) {
-  const readmeFile = files.find(f => /^readme\.md$/i.test(f) || /^project_overview\.md$/i.test(f));
+  const readmeFile = files.find(f => /^readme.*\.md$/i.test(f) || /^project_overview\.md$/i.test(f));
   if (readmeFile) {
     try {
       const content = fs.readFileSync(path.join(projectPath, readmeFile), 'utf8');
@@ -129,7 +160,7 @@ function getProjectDescription(projectPath, files) {
 }
 
 function getReadmeContent(projectPath, files) {
-  const readmeFile = files.find(f => /^readme\.md$/i.test(f) || /^project_overview\.md$/i.test(f));
+  const readmeFile = files.find(f => /^readme.*\.md$/i.test(f) || /^project_overview\.md$/i.test(f));
   if (readmeFile) {
     try {
       return fs.readFileSync(path.join(projectPath, readmeFile), 'utf8');
@@ -138,20 +169,100 @@ function getReadmeContent(projectPath, files) {
   return null;
 }
 
-// ============================================================================
-// MAIN BUILD
-// ============================================================================
+// Recursively scan and gather source files for in-browser Code Viewer
+function scanProjectSourceFiles(projectPath, relPrefix = '') {
+  const fileTree = [];
+  const entries = fs.readdirSync(projectPath, { withFileTypes: true });
+
+  for (const entry of entries) {
+    if (IGNORED_DIRS.has(entry.name)) continue;
+    const fullPath = path.join(projectPath, entry.name);
+    const relPath = path.join(relPrefix, entry.name).replace(/\\/g, '/');
+
+    if (entry.isDirectory()) {
+      // Avoid deep dist/build trees in source view
+      if (entry.name === 'dist' || entry.name === 'build') continue;
+      fileTree.push(...scanProjectSourceFiles(fullPath, relPath));
+    } else if (entry.isFile()) {
+      const ext = path.extname(entry.name).toLowerCase();
+      const stat = fs.statSync(fullPath);
+
+      // Only include text code files under 300KB
+      if (CODE_EXTENSIONS[ext] && stat.size < 300000) {
+        try {
+          const content = fs.readFileSync(fullPath, 'utf8');
+          fileTree.push({
+            path: relPath,
+            name: entry.name,
+            size: stat.size,
+            language: CODE_EXTENSIONS[ext] || 'plaintext',
+            content
+          });
+        } catch (e) {}
+      }
+    }
+  }
+
+  return fileTree;
+}
+
+// Copy runnable apps to public/live/<slug>
+function copyFolderSync(from, to) {
+  if (!fs.existsSync(to)) fs.mkdirSync(to, { recursive: true });
+  fs.readdirSync(from).forEach(element => {
+    if (IGNORED_DIRS.has(element)) return;
+    const fromPath = path.join(from, element);
+    const toPath = path.join(to, element);
+    if (fs.lstatSync(fromPath).isDirectory()) {
+      copyFolderSync(fromPath, toPath);
+    } else {
+      fs.copyFileSync(fromPath, toPath);
+    }
+  });
+}
+
+function deployLiveApp(dirName, projectPath, files) {
+  const slug = dirName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const targetDir = path.join(LIVE_DIR, slug);
+
+  // 1. If project has a dist folder with index.html (Vite/React builds)
+  if (fs.existsSync(path.join(projectPath, 'dist', 'index.html'))) {
+    copyFolderSync(path.join(projectPath, 'dist'), targetDir);
+    return `/live/${slug}/index.html`;
+  }
+
+  // 2. If project has a root index.html (Pure HTML/CSS/JS)
+  if (files.includes('index.html')) {
+    copyFolderSync(projectPath, targetDir);
+    return `/live/${slug}/index.html`;
+  }
+
+  // 3. If project has frontend/index.html (AI phishing url detector)
+  if (fs.existsSync(path.join(projectPath, 'frontend', 'index.html'))) {
+    copyFolderSync(path.join(projectPath, 'frontend'), targetDir);
+    return `/live/${slug}/index.html`;
+  }
+
+  return null;
+}
 
 function build() {
-  console.log('🔨 ProjectHub Build — Generating static project data...');
-  console.log(`📂 Scanning: ${PROJECTS_DIR}`);
+  console.log('🚀 ProjectHub Deep Build — Synchronizing workspace code for real-world deployment...');
+  console.log(`📂 Source: ${PROJECTS_DIR}`);
 
   if (!fs.existsSync(PROJECTS_DIR)) {
-    console.error(`❌ Projects directory not found: ${PROJECTS_DIR}`);
-    console.log('⚠️  Generating empty projects-data.json');
-    fs.writeFileSync(OUTPUT_FILE, JSON.stringify({ projects: [], buildTime: new Date().toISOString() }, null, 2));
+    console.log('⚠️ Running in cloud build environment (D:\\Projects does not exist).');
+    if (fs.existsSync(OUTPUT_JS)) {
+      console.log('✅ Preserving existing bundled projects data.');
+      return;
+    }
+    console.warn('Generating default placeholder.');
+    fs.writeFileSync(OUTPUT_JS, 'window.PROJECTS_DATA = { projects: [] };');
+    fs.writeFileSync(OUTPUT_JSON, JSON.stringify({ projects: [] }));
     return;
   }
+
+  if (!fs.existsSync(LIVE_DIR)) fs.mkdirSync(LIVE_DIR, { recursive: true });
 
   const dirs = fs.readdirSync(PROJECTS_DIR).filter(file => {
     try {
@@ -162,49 +273,46 @@ function build() {
     }
   });
 
-  console.log(`📁 Found ${dirs.length} projects (after exclusions)\n`);
+  console.log(`📁 Found ${dirs.length} projects to bundle.\n`);
+
+  let totalCodeFiles = 0;
 
   const projects = dirs.map(dirName => {
     const projectPath = path.join(PROJECTS_DIR, dirName);
-    const info = {
+    const files = fs.readdirSync(projectPath);
+    const techStack = detectTechStack(projectPath, files);
+    const category = detectCategory(dirName, techStack, files);
+    const description = getProjectDescription(projectPath, files);
+    const readme = getReadmeContent(projectPath, files);
+    const sourceFiles = scanProjectSourceFiles(projectPath);
+    const liveUrl = deployLiveApp(dirName, projectPath, files);
+
+    totalCodeFiles += sourceFiles.length;
+
+    console.log(`  📦 ${dirName}`);
+    console.log(`     Category: [${category}] | Stack: ${techStack.join(', ') || 'HTML/CSS'}`);
+    console.log(`     Source Files: ${sourceFiles.length} files | Live URL: ${liveUrl || 'None'}\n`);
+
+    return {
       name: dirName,
-      icon: 'package',
-      category: 'other',
-      techStack: [],
-      description: null,
-      readme: null,
-      hasReadme: false,
-      status: 'idle',
-      url: null
+      slug: dirName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      icon: getCategoryIcon(category),
+      category,
+      techStack,
+      description,
+      readme,
+      hasReadme: !!readme,
+      liveUrl,
+      sourceFiles,
+      status: 'idle'
     };
-
-    try {
-      const files = fs.readdirSync(projectPath);
-      const techStack = detectTechStack(projectPath, files);
-      const category = detectCategory(dirName, techStack, files);
-      const description = getProjectDescription(projectPath, files);
-      const readme = getReadmeContent(projectPath, files);
-
-      info.techStack = techStack;
-      info.category = category;
-      info.icon = getCategoryIcon(category);
-      info.description = description;
-      info.readme = readme;
-      info.hasReadme = !!readme;
-
-      console.log(`  ✅ ${dirName} [${category}] — ${techStack.join(', ') || 'no stack detected'}`);
-    } catch (err) {
-      info.icon = 'alert-circle';
-      console.log(`  ⚠️  ${dirName} — Error: ${err.message}`);
-    }
-
-    return info;
   });
 
-  const output = {
+  const payload = {
     projects,
     buildTime: new Date().toISOString(),
     totalProjects: projects.length,
+    totalCodeFiles,
     categories: {
       webapp: projects.filter(p => p.category === 'webapp').length,
       python: projects.filter(p => p.category === 'python').length,
@@ -214,11 +322,17 @@ function build() {
     }
   };
 
-  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2));
+  // 1. Write JavaScript module (synchronous load in browser, immune to fetch/routing errors)
+  const jsContent = `/* Generated by ProjectHub Build at ${payload.buildTime} */\nwindow.PROJECTS_DATA = ${JSON.stringify(payload, null, 2)};\n`;
+  fs.writeFileSync(OUTPUT_JS, jsContent);
 
-  console.log(`\n✨ Build complete!`);
-  console.log(`📄 Output: ${OUTPUT_FILE}`);
-  console.log(`📊 ${output.totalProjects} projects | webapp:${output.categories.webapp} python:${output.categories.python} security:${output.categories.security} static:${output.categories.static}`);
+  // 2. Write JSON format as well
+  fs.writeFileSync(OUTPUT_JSON, JSON.stringify(payload, null, 2));
+
+  console.log(`✨ Build Complete!`);
+  console.log(`📄 Generated: ${OUTPUT_JS}`);
+  console.log(`📄 Generated: ${OUTPUT_JSON}`);
+  console.log(`📊 ${projects.length} projects bundled with ${totalCodeFiles} source code files for live in-browser manipulation!`);
 }
 
 build();
