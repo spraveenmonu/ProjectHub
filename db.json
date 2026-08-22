@@ -50,16 +50,20 @@
       "lastLaunched": "2026-08-17T04:09:53.072Z"
     },
     "Cyber Attacks": {
-      "launchCount": 1,
-      "lastLaunched": "2026-08-22T03:48:09.832Z"
+      "launchCount": 2,
+      "lastLaunched": "2026-08-22T06:00:36.922Z"
     },
     "Chatting application": {
-      "launchCount": 1,
-      "lastLaunched": "2026-08-22T03:48:27.550Z"
+      "launchCount": 2,
+      "lastLaunched": "2026-08-22T06:00:19.839Z"
     },
     "House Recommendation": {
       "launchCount": 1,
       "lastLaunched": "2026-08-22T03:48:47.578Z"
+    },
+    "Automated vulnerability scanner": {
+      "launchCount": 1,
+      "lastLaunched": "2026-08-22T06:00:11.594Z"
     }
   },
   "projectOverrides": {}

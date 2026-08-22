@@ -8,8 +8,12 @@ let favorites = JSON.parse(localStorage.getItem('projecthub_favorites') || '[]')
 let logPollIntervals = new Map();
 let openDrawerProject = null;
 let drawerLogPoll = null;
+let staticProjectData = null; // Holds pre-built data in deployed mode
 
 const API_URL = '';
+
+// Deployment mode detection — true when NOT running on localhost
+const IS_DEPLOYED = !['localhost', '127.0.0.1'].includes(window.location.hostname);
 
 // ============================================================================
 // DOM ELEMENTS
@@ -47,7 +51,15 @@ const sectionCount = $('#section-count');
 // INITIALIZATION
 // ============================================================================
 document.addEventListener('DOMContentLoaded', async () => {
-    await fetchDB();
+    if (IS_DEPLOYED) {
+        // Deployed mode: load from pre-built static JSON
+        await loadStaticProjectData();
+        // Hide server-only UI elements
+        applyDeployedModeUI();
+    } else {
+        // Local mode: use live API
+        await fetchDB();
+    }
     fetchProjects();
     setupEventListeners();
     lucide.createIcons();
@@ -124,15 +136,33 @@ function setupEventListeners() {
 // ============================================================================
 async function fetchProjects() {
     try {
-        const res = await fetch(`${API_URL}/api/projects`);
-        if (!res.ok) throw new Error('API server error');
-        projects = await res.json();
+        if (IS_DEPLOYED && staticProjectData) {
+            // Deployed mode: use pre-built static data
+            projects = staticProjectData.projects || [];
+        } else {
+            // Local mode: fetch from live API
+            const res = await fetch(`${API_URL}/api/projects`);
+            if (!res.ok) throw new Error('API server error');
+            projects = await res.json();
+        }
 
         updateStats();
         updateSidebarCounts();
         renderProjectsGrid();
-        manageLogPollers();
+        if (!IS_DEPLOYED) manageLogPollers();
     } catch (err) {
+        // If API fails AND we haven't loaded static data, try static fallback
+        if (!staticProjectData) {
+            try {
+                await loadStaticProjectData();
+                projects = staticProjectData.projects || [];
+                applyDeployedModeUI();
+                updateStats();
+                updateSidebarCounts();
+                renderProjectsGrid();
+                return;
+            } catch (e) {}
+        }
         projectsGrid.innerHTML = `
             <div class="no-results">
                 <i data-lucide="alert-octagon"></i>
@@ -142,6 +172,31 @@ async function fetchProjects() {
         `;
         lucide.createIcons();
     }
+}
+
+// Load pre-built static project data (for deployment)
+async function loadStaticProjectData() {
+    const res = await fetch('/projects-data.json');
+    if (!res.ok) throw new Error('Static data not found');
+    staticProjectData = await res.json();
+}
+
+// Adjust UI for deployed/portfolio mode
+function applyDeployedModeUI() {
+    // Add portfolio mode indicator
+    const logoSub = document.querySelector('.logo-sub');
+    if (logoSub) logoSub.textContent = 'Project Portfolio';
+
+    // Hide the "Running" status filter — not relevant in deployed mode
+    const runningNav = document.getElementById('nav-running');
+    if (runningNav) runningNav.style.display = 'none';
+    const runningDivider = runningNav?.previousElementSibling;
+    if (runningDivider?.classList.contains('nav-divider')) runningDivider.style.display = 'none';
+    const runningLabel = runningDivider?.previousElementSibling;
+    if (runningLabel?.classList.contains('nav-label')) runningLabel.style.display = 'none';
+
+    // Change refresh button tooltip
+    if (btnRefresh) btnRefresh.title = 'Reload projects';
 }
 
 // ============================================================================
@@ -313,23 +368,31 @@ function renderProjectsGrid() {
     }
 
     projectsGrid.innerHTML = filtered.map((p, i) => {
-        const isRunning = p.status === 'running' || p.status === 'installing' || p.status === 'failed';
+        const isRunning = !IS_DEPLOYED && (p.status === 'running' || p.status === 'installing' || p.status === 'failed');
         const isFav = favorites.includes(p.name);
         const cardClass = isRunning ? `project-card ${p.status}` : 'project-card';
         const safeName = escapeAttr(p.name);
 
         // Badge
         let badge = '';
-        if (p.status === 'running') badge = `<span class="status-badge badge-running">Active</span>`;
-        else if (p.status === 'installing') badge = `<span class="status-badge badge-installing">Starting</span>`;
-        else if (p.status === 'failed') badge = `<span class="status-badge badge-failed">Failed</span>`;
+        if (!IS_DEPLOYED) {
+            if (p.status === 'running') badge = `<span class="status-badge badge-running">Active</span>`;
+            else if (p.status === 'installing') badge = `<span class="status-badge badge-installing">Starting</span>`;
+            else if (p.status === 'failed') badge = `<span class="status-badge badge-failed">Failed</span>`;
+        }
 
         // Primary tag (just one)
         const primaryTag = (p.techStack && p.techStack.length > 0) ? `<span class="tech-tag">${escapeHtml(p.techStack[0])}</span>` : '';
 
-        // Inline terminal for running cards
+        // Description snippet for deployed mode
+        let descSnippet = '';
+        if (IS_DEPLOYED && p.description) {
+            descSnippet = `<p class="card-description">${escapeHtml(p.description)}</p>`;
+        }
+
+        // Inline terminal for running cards (local only)
         let terminal = '';
-        if (isRunning) {
+        if (!IS_DEPLOYED && isRunning) {
             terminal = `
                 <div class="card-terminal-wrap" onclick="event.stopPropagation()">
                     <div class="card-terminal-header">
@@ -343,30 +406,53 @@ function renderProjectsGrid() {
         }
 
         // Quick access buttons at bottom
-        const actions = `
-            <div class="card-actions" onclick="event.stopPropagation()">
-                <button class="card-action act-code" title="Open in VS Code" onclick="openVSCode('${safeName}')">
-                    <i data-lucide="code"></i> Code
-                </button>
-                <button class="card-action act-folder" title="Open folder" onclick="openExplorer('${safeName}')">
-                    <i data-lucide="folder-open"></i> Files
-                </button>
-                ${isRunning
-                    ? `<button class="card-action act-stop" title="Stop server" onclick="stopProject('${safeName}')">
-                           <i data-lucide="square"></i> Stop
-                       </button>`
-                    : ''
-                }
-                <button class="card-action act-info" title="Details" onclick="openDrawer('${safeName}')">
-                    <i data-lucide="info"></i>
-                </button>
-            </div>
-        `;
+        let actions = '';
+        if (IS_DEPLOYED) {
+            // Deployed mode: show info button and all tech tags
+            const allTags = (p.techStack || []).slice(1).map(t =>
+                `<span class="tech-tag">${escapeHtml(t)}</span>`
+            ).join('');
+            actions = `
+                <div class="card-actions" onclick="event.stopPropagation()">
+                    ${allTags ? `<div class="card-extra-tags">${allTags}</div>` : ''}
+                    <button class="card-action act-info" title="View Details" onclick="openDrawer('${safeName}')">
+                        <i data-lucide="info"></i> Details
+                    </button>
+                </div>
+            `;
+        } else {
+            // Local mode: full action buttons
+            actions = `
+                <div class="card-actions" onclick="event.stopPropagation()">
+                    <button class="card-action act-code" title="Open in VS Code" onclick="openVSCode('${safeName}')">
+                        <i data-lucide="code"></i> Code
+                    </button>
+                    <button class="card-action act-folder" title="Open folder" onclick="openExplorer('${safeName}')">
+                        <i data-lucide="folder-open"></i> Files
+                    </button>
+                    ${isRunning
+                        ? `<button class="card-action act-stop" title="Stop server" onclick="stopProject('${safeName}')">
+                               <i data-lucide="square"></i> Stop
+                           </button>`
+                        : ''
+                    }
+                    <button class="card-action act-info" title="Details" onclick="openDrawer('${safeName}')">
+                        <i data-lucide="info"></i>
+                    </button>
+                </div>
+            `;
+        }
 
-        // Card click = LAUNCH the project
-        const clickAction = isRunning && p.url
-            ? `window.open('${p.url}', '_blank')`
-            : `launchProject('${safeName}')`;
+        // Card click behavior
+        let clickAction;
+        if (IS_DEPLOYED) {
+            // Deployed mode: open drawer for details
+            clickAction = `openDrawer('${safeName}')`;
+        } else if (isRunning && p.url) {
+            clickAction = `window.open('${p.url}', '_blank')`;
+        } else {
+            clickAction = `launchProject('${safeName}')`;
+        }
 
         return `
             <div class="${cardClass}" data-category="${p.category}" style="animation-delay: ${i * 0.04}s"
@@ -390,6 +476,7 @@ function renderProjectsGrid() {
                     </div>
                 </div>
 
+                ${descSnippet}
                 ${terminal}
                 ${actions}
             </div>
@@ -398,11 +485,13 @@ function renderProjectsGrid() {
 
     lucide.createIcons();
 
-    // Kick log polls for visible terminals
-    logPollIntervals.forEach((_, key) => {
-        const term = document.getElementById(`terminal-${key}`);
-        if (term) term.scrollTop = term.scrollHeight;
-    });
+    // Kick log polls for visible terminals (local only)
+    if (!IS_DEPLOYED) {
+        logPollIntervals.forEach((_, key) => {
+            const term = document.getElementById(`terminal-${key}`);
+            if (term) term.scrollTop = term.scrollHeight;
+        });
+    }
 }
 
 // ============================================================================
@@ -487,6 +576,7 @@ window.cmdLaunchProject = function(name) {
 
 // DB State Fetching
 async function fetchDB() {
+    if (IS_DEPLOYED) return; // No server DB in deployed mode
     try {
         const res = await fetch(`${API_URL}/api/db`);
         if (res.ok) {
@@ -669,7 +759,7 @@ window.openDrawer = function(name) {
     if (!project) return;
 
     openDrawerProject = name;
-    const isRunning = project.status === 'running' || project.status === 'installing';
+    const isRunning = !IS_DEPLOYED && (project.status === 'running' || project.status === 'installing');
 
     // Set header
     $('#drawer-title').textContent = project.name;
@@ -687,31 +777,46 @@ window.openDrawer = function(name) {
         `<span class="tech-tag">${escapeHtml(t)}</span>`
     ).join('');
 
-    // Actions
+    // Actions — different for deployed vs local
     const actionsDiv = $('#drawer-actions');
     const safeName = escapeAttr(name);
-    actionsDiv.innerHTML = `
-        <button class="drawer-action-btn da-code" onclick="openVSCode('${safeName}')">
-            <i data-lucide="terminal"></i> VS Code
-        </button>
-        <button class="drawer-action-btn da-folder" onclick="openExplorer('${safeName}')">
-            <i data-lucide="folder-open"></i> Explorer
-        </button>
-        ${isRunning
-            ? `<button class="drawer-action-btn da-stop" onclick="stopProject('${safeName}')">
-                   <i data-lucide="square"></i> Stop Server
-               </button>`
-            : `<button class="drawer-action-btn da-run" onclick="activateProject('${safeName}')">
-                   <i data-lucide="play"></i> Run Project
-               </button>`
-        }
-        ${isRunning && project.url
-            ? `<button class="drawer-action-btn da-web" onclick="window.open('${project.url}', '_blank')">
-                   <i data-lucide="external-link"></i> Open Web App
-               </button>`
-            : ''
-        }
-    `;
+
+    if (IS_DEPLOYED) {
+        // Deployed mode: show category info and GitHub link
+        const catLabel = { webapp: 'Web App', python: 'Python', security: 'Security', static: 'Static Site', other: 'Project' };
+        actionsDiv.innerHTML = `
+            <span class="drawer-category-label" style="color: ${getCatColor(project.category)}">
+                <i data-lucide="${project.icon || 'package'}"></i> ${catLabel[project.category] || 'Project'}
+            </span>
+            <a class="drawer-action-btn da-github" href="https://github.com/spraveenmonu/${encodeURIComponent(project.name)}" target="_blank" rel="noopener">
+                <i data-lucide="github"></i> View on GitHub
+            </a>
+        `;
+    } else {
+        // Local mode: full action buttons
+        actionsDiv.innerHTML = `
+            <button class="drawer-action-btn da-code" onclick="openVSCode('${safeName}')">
+                <i data-lucide="terminal"></i> VS Code
+            </button>
+            <button class="drawer-action-btn da-folder" onclick="openExplorer('${safeName}')">
+                <i data-lucide="folder-open"></i> Explorer
+            </button>
+            ${isRunning
+                ? `<button class="drawer-action-btn da-stop" onclick="stopProject('${safeName}')">
+                       <i data-lucide="square"></i> Stop Server
+                   </button>`
+                : `<button class="drawer-action-btn da-run" onclick="activateProject('${safeName}')">
+                       <i data-lucide="play"></i> Run Project
+                   </button>`
+            }
+            ${isRunning && project.url
+                ? `<button class="drawer-action-btn da-web" onclick="window.open('${project.url}', '_blank')">
+                       <i data-lucide="external-link"></i> Open Web App
+                   </button>`
+                : ''
+            }
+        `;
+    }
 
     // Switch to Overview tab by default
     $$('.drawer-tab').forEach(t => t.classList.remove('active'));
@@ -719,14 +824,20 @@ window.openDrawer = function(name) {
     $$('.drawer-tab')[0].classList.add('active');
     $('#panel-overview').classList.add('active');
 
+    // Hide Live Logs tab in deployed mode
+    const logsTab = $$('.drawer-tab')[1];
+    if (logsTab) logsTab.style.display = IS_DEPLOYED ? 'none' : '';
+
     // Load README
     loadDrawerReadme(name);
 
-    // Load logs if running
-    if (isRunning) {
+    // Load logs if running (local only)
+    if (!IS_DEPLOYED && isRunning) {
         loadDrawerLogs(name);
     } else {
-        $('#drawer-terminal').innerHTML = `<div class="terminal-line system">[ProjectHub] No active server. Start the project to see live logs.</div>`;
+        $('#drawer-terminal').innerHTML = IS_DEPLOYED
+            ? `<div class="terminal-line system">[Portfolio Mode] Live logs are only available when running locally.</div>`
+            : `<div class="terminal-line system">[ProjectHub] No active server. Start the project to see live logs.</div>`;
     }
 
     // Open drawer
@@ -751,6 +862,20 @@ async function loadDrawerReadme(name) {
     const readmeDiv = $('#drawer-readme');
     readmeDiv.innerHTML = `<div class="readme-loading"><div class="spinner"></div><span>Loading README...</span></div>`;
 
+    // In deployed mode, check if README is pre-loaded in static data
+    if (IS_DEPLOYED) {
+        const project = projects.find(p => p.name === name);
+        if (project && project.readme) {
+            readmeDiv.innerHTML = renderMarkdown(project.readme);
+        } else if (project && project.description) {
+            readmeDiv.innerHTML = `<div class="readme-fallback"><p>${escapeHtml(project.description)}</p></div>`;
+        } else {
+            readmeDiv.innerHTML = `<p class="readme-none">No README available for this project.</p>`;
+        }
+        return;
+    }
+
+    // Local mode: fetch from API
     try {
         const res = await fetch(`${API_URL}/api/projects/${encodeURIComponent(name)}/readme`);
         if (!res.ok) throw new Error();
@@ -871,13 +996,16 @@ window.toggleFavorite = async function(name, event) {
     updateSidebarCounts();
     renderProjectsGrid();
 
-    try {
-        await fetch(`${API_URL}/api/db/favorites`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ favorites })
-        });
-    } catch (e) {}
+    // Only sync to server DB in local mode
+    if (!IS_DEPLOYED) {
+        try {
+            await fetch(`${API_URL}/api/db/favorites`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ favorites })
+            });
+        } catch (e) {}
+    }
 };
 
 // ============================================================================

@@ -1636,3 +1636,84 @@ body {
     border-color: var(--danger);
     color: var(--danger-light);
 }
+
+/* ==========================================================================
+   DEPLOYED / PORTFOLIO MODE STYLES
+   ========================================================================== */
+
+/* Card description text */
+.card-description {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    margin: 0.35rem 0 0.5rem;
+    padding: 0 0.25rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    opacity: 0.75;
+}
+
+/* Extra tech tags row in deployed card */
+.card-extra-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    flex: 1;
+}
+
+.card-extra-tags .tech-tag {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.45rem;
+    opacity: 0.7;
+}
+
+/* GitHub link button */
+.da-github {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-default);
+    color: var(--text-secondary);
+    padding: 0.45rem 0.85rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: var(--transition-fast);
+    cursor: pointer;
+}
+
+.da-github:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+}
+
+/* Drawer category label */
+.drawer-category-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.drawer-category-label i,
+.drawer-category-label svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* README fallback content */
+.readme-fallback {
+    padding: 1.2rem;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    font-style: italic;
+    opacity: 0.8;
+}

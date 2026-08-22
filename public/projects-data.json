@@ -1,0 +1,257 @@
+{
+  "projects": [
+    {
+      "name": "AI based phishing url detector",
+      "icon": "shield",
+      "category": "security",
+      "techStack": [
+        "FastAPI"
+      ],
+      "description": "> One-Click Deploy: Replace YOURGITHUBREPOHERE with your actual GitHub link in README.md to enable the button above!",
+      "readme": "# 🌌 Astronomia: AI Phishing URL Detector\r\n\r\n[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=YOUR_GITHUB_REPO_HERE)\r\n\r\n> **One-Click Deploy**: Replace `YOUR_GITHUB_REPO_HERE` with your actual GitHub link in `README.md` to enable the button above!\r\n\r\n---\r\n\r\n## Project Structure 📂\r\n-   **`backend/`**: Contains the AI model, feature extraction logic, and FastAPI server.\r\n    -   `main.py`: The FastAPI application.\r\n    -   `features.py`: URL feature extraction algorithms.\r\n    -   `train_model.py`: Script to train and save the `RandomForest` model.\r\n-   **`frontend/`**: Contains the modern user interface.\r\n    -   `index.html`: Dashboard structure.\r\n    -   `styles.css`: Glassmorphism and animations.\r\n    -   `script.js`: Frontend logic and backend integration.\r\n-   **`run.py`**: A one-click script to train the model and start the entire system.\r\n\r\n## Getting Started 🚀\r\n\r\n### 1. Installation\r\nInstall the required dependencies using the `requirements.txt` file:\r\n```bash\r\npip install -r requirements.txt\r\n```\r\n\r\n### 2. Running the System\r\nSimply run the root-level `run.py` script:\r\n```bash\r\npython run.py\r\n```\r\nThis script will:\r\n1.  Automatically train the AI model if it's the first time you're running it.\r\n2.  Start the FastAPI backend on `http://localhost:8000`.\r\n3.  Open the modern dashboard in your default browser.\r\n\r\n### 3. Usage\r\n1.  Enter a URL in the dashboard input field (e.g., `http://verify-microsoft-security.com/login`).\r\n2.  Click **\"Check Now\"**.\r\n3.  View the detailed AI analysis, probability of phishing, and feature breakdown.\r\n\r\n## Tech Stack 🛠️\r\n-   **Backend**: Python, FastAPI, Scikit-Learn, Pandas, Numpy, TLDextract\r\n-   **Frontend**: HTML5, Vanilla CSS, JavaScript (ES6+), FontAwesome for icons, Google Fonts (Outfit)\r\n\r\n---\r\n*Stay Safe Online!* 🛡️\r\n",
+      "hasReadme": true,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Automated vulnerability scanner",
+      "icon": "shield",
+      "category": "security",
+      "techStack": [
+        "HTML/CSS"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Chatbot",
+      "icon": "globe",
+      "category": "webapp",
+      "techStack": [
+        "Express"
+      ],
+      "description": "├── index.html              ← Main app open this in browser",
+      "readme": "# 🎬 MovioBot — Ultimate 3D Movie Discovery Experience\n\n## 📁 FOLDER STRUCTURE — WHERE TO SAVE YOUR DATASETS\n\n```\nmovie-chatbot/\n│\n├── index.html              ← Main app (open this in browser)\n│\n├── datasets/               ← ✅ SAVE YOUR CSV FILES HERE\n│   ├── netflix_titles.csv          ← Netflix dataset from Kaggle\n│   └── amazon_prime_titles.csv     ← Amazon Prime dataset from Kaggle\n│\n├── js/\n│   ├── dataLoader.js       ← Reads & parses your CSV files\n│   └── chatbot.js          ← Chatbot logic & filtering\n│\n└── css/                    ← (CSS is embedded in index.html)\n```\n\n---\n\n## 📂 DATASET FILE NAMES (EXACT NAMES REQUIRED)\n\n| Platform      | Kaggle Dataset               | Save As                      |\n|---------------|------------------------------|------------------------------|\n| Netflix       | netflix_titles.csv           | `datasets/netflix_titles.csv` |\n| Amazon Prime  | amazon_prime_titles.csv      | `datasets/amazon_prime_titles.csv` |\n\n> **Important**: The filenames must match exactly as shown above!\n\n---\n\n## 🚀 HOW TO RUN\n\n### Option A — Simple (Python server):\n```bash\ncd movie-chatbot\npython3 -m http.server 8080\n# Open: http://localhost:8080\n```\n\n### Option B — Node.js:\n```bash\ncd movie-chatbot\nnpx serve .\n# Open the URL shown in terminal\n```\n\n### Option C — VS Code:\nInstall the **Live Server** extension → Right-click `index.html` → Open with Live Server\n\n> ⚠️ Must use a local server (not file://) so the CSV files can be loaded!\n\n---\n\n## 🎯 FEATURES\n\n- 🤖 Conversational chatbot with step-by-step filters\n- 🎬 Filters: Platform → Type → Genre → Language\n- 🃏 Beautiful animated movie cards with click-to-detail modal\n- 📊 Sidebar with dataset stats and quick genre filters\n- 🌈 Cinematic dark UI with glowing animations\n- ✅ Works with both Netflix + Amazon Prime datasets simultaneously\n\n---\n\n## 🔍 KAGGLE DATASET LINKS\n\n- Netflix: https://www.kaggle.com/datasets/shivamb/netflix-shows\n- Amazon Prime: https://www.kaggle.com/datasets/shivamb/amazon-prime-movies-and-tv-shows\n\n",
+      "hasReadme": true,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Chatting application",
+      "icon": "globe",
+      "category": "webapp",
+      "techStack": [
+        "React",
+        "Vite",
+        "Socket.IO",
+        "TypeScript"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Cyber Attacks",
+      "icon": "shield",
+      "category": "security",
+      "techStack": [
+        "HTML/CSS"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Disease Recommedation",
+      "icon": "globe",
+      "category": "webapp",
+      "techStack": [
+        "Vite"
+      ],
+      "description": "A machine learning-based disease prediction system built as a final year AI & Data Science project. The system predicts the likelihood of a disease e.g., diabet...",
+      "readme": "# 🩺 Disease Prediction System\n\nA machine learning-based disease prediction system built as a final year AI & Data Science project. The system predicts the likelihood of a disease (e.g., diabetes, heart disease) based on patient health parameters, helping in early risk detection.\n\n---\n\n## 📌 Project Overview\n\nEarly disease detection can significantly improve treatment outcomes. This project uses supervised machine learning to analyze patient health data (like glucose level, blood pressure, BMI, age, etc.) and predicts whether a patient is likely to have a particular disease.\n\nTwo common variants you can build (pick one, or both as separate modules):\n- **Diabetes Prediction** — using the Pima Indians Diabetes dataset.\n- **Heart Disease Prediction** — using the UCI Heart Disease dataset.\n\n---\n\n## 🎯 Objectives\n\n- Build a classification model that predicts disease risk from patient health metrics.\n- Perform data cleaning, exploratory data analysis (EDA), and feature engineering on medical data.\n- Compare multiple ML algorithms and select the best-performing one.\n- Provide a simple interface where users can input health parameters and get an instant prediction.\n\n---\n\n## 🛠️ Tech Stack\n\n| Component        | Technology                          |\n|-------------------|--------------------------------------|\n| Language          | Python 3.x                          |\n| Data Handling     | Pandas, NumPy                       |\n| ML Algorithms     | Scikit-learn (Logistic Regression, Random Forest, SVM, KNN) |\n| Visualization     | Matplotlib, Seaborn                 |\n| Interface         | Streamlit (web app)                 |\n| Dataset           | Kaggle / UCI ML Repository (Pima Indians Diabetes / Heart Disease Dataset) |\n\n---\n\n## 📂 Project Structure\n\n```\ndisease-prediction-system/\n│\n├── data/\n│   └── disease_dataset.csv       # Patient health records dataset\n│\n├── notebooks/\n│   └── data_exploration.ipynb    # EDA and model experimentation\n│\n├── src/\n│   ├── preprocessing.py          # Data cleaning & feature scaling\n│   ├── train_model.py            # Model training & evaluation\n│   └── predict.py                # Load model & make predictions\n│\n├── models/\n│   └── disease_model.pkl         # Saved trained model\n│\n├── app.py                        # Streamlit web app\n├── requirements.txt\n└── README.md\n```\n\n---\n\n## ⚙️ How It Works\n\n1. **Data Preprocessing**\n   - Handle missing/zero values (common in medical datasets, e.g., glucose = 0 is invalid).\n   - Normalize/standardize numerical features (age, BMI, blood pressure, glucose level).\n   - Split data into training and testing sets.\n\n2. **Exploratory Data Analysis (EDA)**\n   - Visualize feature distributions and correlations (e.g., heatmap of health parameters vs disease outcome).\n   - Identify key risk factors influencing the disease.\n\n3. **Model Training**\n   - Train multiple classifiers: Logistic Regression, Random Forest, SVM, KNN.\n   - Evaluate using accuracy, precision, recall, F1-score, and ROC-AUC (important for medical predictions since false negatives are costly).\n   - Select the best model and save it using `pickle` or `joblib`.\n\n4. **Prediction Interface**\n   - User enters health parameters (age, glucose, BP, BMI, etc.) via a simple form.\n   - The saved model predicts disease risk (Positive/Negative) along with a confidence score.\n\n---\n\n## 🚀 Installation & Setup\n\n1. **Clone the repository**\n   ```bash\n   git clone https://github.com/yourusername/disease-prediction-system.git\n   cd disease-prediction-system\n   ```\n\n2. **Create a virtual environment (optional but recommended)**\n   ```bash\n   python -m venv venv\n   source venv/bin/activate    # On Windows: venv\\Scripts\\activate\n   ```\n\n3. **Install dependencies**\n   ```bash\n   pip install -r requirements.txt\n   ```\n\n4. **Train the model (if not already trained)**\n   ```bash\n   python src/train_model.py\n   ```\n\n5. **Run the Streamlit app**\n   ```bash\n   streamlit run app.py\n   ```\n\n6. Open the local URL shown in the terminal (usually `http://localhost:8501`) to use the app.\n\n---\n\n## 📊 Sample requirements.txt\n\n```\npandas\nnumpy\nscikit-learn\nstreamlit\nmatplotlib\nseaborn\njoblib\n```\n\n---\n\n## 🖥️ Usage\n\n- Enter patient health parameters (e.g., age, glucose level, blood pressure, BMI, insulin level).\n- Click \"Predict\" to get the disease risk result (e.g., \"High Risk\" / \"Low Risk\") with a probability score.\n- View feature importance charts to understand which factors influenced the prediction most.\n\n---\n\n## 📈 Results / Evaluation\n\n- Models compared using accuracy, precision, recall, F1-score, and confusion matrix.\n- Random Forest / SVM typically perform best on structured medical datasets like Pima Diabetes or UCI Heart Disease.\n- Target: **~75–85% accuracy** is realistic and acceptable for these datasets at a final-year project level.\n\n*(Add your actual results, confusion matrix, and screenshots here once you run the model.)*\n\n---\n\n## ⚠️ Disclaimer\n\nThis project is built for **academic and educational purposes only**. It is not a certified medical diagnostic tool and should not be used for real clinical decision-making.\n\n---\n\n## 🔮 Future Enhancements\n\n- Extend to multi-disease prediction (diabetes, heart disease, kidney disease) in one app.\n- Use deep learning (ANN) for improved accuracy on larger datasets.\n- Add explainability using SHAP/LIME to show why a prediction was made (important for medical trust).\n- Deploy the app on Streamlit Cloud / Heroku for public access.\n- Add user authentication and prediction history tracking.\n\n---\n\n## 👥 Team\n\n**[Your Name]** — Data Preprocessing, Model Training\n**[Teammate Name]** — Streamlit App, Evaluation & Visualization\nFinal Year — AI & Data Science\n[Your College Name]\n\n---\n\n## 🤝 Contributing (Team Workflow)\n\n1. Clone the repo and create your own feature branch: `git checkout -b feature/your-task`\n2. Commit changes regularly with clear messages.\n3. Push your branch and open a Pull Request into `main`.\n4. Get review/approval from your teammate before merging.\n5. Pull the latest `main` before starting new work to stay in sync.\n\n---\n\n## 📄 License\n\nThis project is developed for academic purposes as part of a final year college project.\n",
+      "hasReadme": true,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Expense Tracker",
+      "icon": "globe",
+      "category": "webapp",
+      "techStack": [
+        "React",
+        "Vite"
+      ],
+      "description": "Welcome to SpendWise, a modern, feature-rich Smart Finance Tracker built with React, Vite, and Framer Motion. This document provides a high-level walkthrough of...",
+      "readme": "# SpendWise — Project Overview & Architecture\n\nWelcome to **SpendWise**, a modern, feature-rich Smart Finance Tracker built with React, Vite, and Framer Motion. This document provides a high-level walkthrough of the project, including its core features, technology stack, directory structure, and setup instructions.\n\n---\n\n## 🚀 Key Features\n\n1. **Intelligent Dashboard**: Displays real-time financial metrics—including overall balance, total income, total expenses, and savings goal progress. Includes interactive chart visualization (weekly, monthly, yearly views) powered by Recharts.\n2. **Interactive Transaction Management**: Allows adding, viewing, filtering, and deleting transactions categorized by transaction type (Income, Expense, Savings) and categories.\n3. **Smart Financial Insights**: Provides automatic spending analysis, calculating financial health scores, tracking essential vs. non-essential spending ratios, and serving context-aware warnings or tips (e.g., alert when spending rises too fast compared to last month).\n4. **Persistent Offline Storage**: Uses IndexedDB (via the [idb](https://www.npmjs.com/package/idb) package) with automatic fallback and data migration from legacy `localStorage`.\n5. **Dynamic Theme System**: Supports toggling between two visually striking themes: **Glassmorphism** (modern, blurred translucent UI elements) and **Brutalism** (bold borders, high contrast, neo-brutalist styling).\n6. **Automatic Locale & Currency Detection**: Automatically formats currency values (e.g. `₹` INR, `$` USD, `£` GBP, `€` EUR) based on the user's browser locale and timezone settings.\n\n---\n\n## 🛠️ Technology Stack\n\n*   **Framework/Bundler**: [React](https://react.dev/) + [Vite](https://vite.dev/)\n*   **Styling**: Plain CSS (flexible CSS custom properties mapped to the custom themes)\n*   **Animation**: [Framer Motion](https://www.framer.com/motion/) for micro-interactions, spring transitions, and modal animations\n*   **Charts**: [Recharts](https://recharts.org/) for responsive graphs\n*   **Storage**: [idb](https://github.com/jakearchibald/idb) (IndexedDB wrapper) for browser-based offline persistence\n*   **Icons**: [React Icons (Feather Icons)](https://react-icons.github.io/react-icons/)\n\n---\n\n## 📁 Project Structure\n\nBelow is the layout of the project, highlighting key source files:\n\n```\nExpense Tracker/\n├── index.html                   # HTML entry point containing Google Fonts links\n├── package.json                 # Project manifest, scripts, and dependencies\n├── vite.config.js               # Vite configurations\n├── public/                      # Static assets\n└── src/\n    ├── main.jsx                 # Application entry point\n    ├── App.jsx                  # Main application structure, sidebar, and theme logic\n    ├── App.css                  # UI Layout styles & dynamic custom variables\n    ├── index.css                # Global styles, fonts, and theme palettes\n    ├── components/              # Interactive UI components\n    │   ├── AddTransaction.jsx   # Form modal to add and validate transactions\n    │   ├── Dashboard.jsx        # Summary cards, spending charts, and smart alerts\n    │   ├── Insights.jsx         # Health score, savings targets, and financial tips\n    │   ├── Toast.jsx            # Toast notifications container and alert alerts\n    │   └── TransactionList.jsx  # History of transactions with filtering controls\n    ├── context/                 # Global state management\n    │   ├── ExpenseContext.jsx   # Context provider, state reducer, and database hydration\n    │   ├── ExpenseContextCore.js# Context core definition\n    │   └── useExpense.js        # Custom hook to consume the expense context\n    └── utils/                   # Shared utility logic\n        ├── categories.js        # Core transaction category configuration mapping\n        └── helpers.js           # Spending analyzers, currency formatters, date formatters, and ID generators\n```\n\n---\n\n## 🧩 Deep-Dive into Key Files\n\n*   **Global State & Database**:\n    *   [ExpenseContext.jsx](file:///d:/Projects/Spraveenmonu/Expense%20Tracker/src/context/ExpenseContext.jsx): Initializes IndexedDB (`SpendWiseDB`) on load. Employs a reducer pattern to dispatch actions (`ADD_TRANSACTION`, `DELETE_TRANSACTION`, `SET_LIMITS`, `SET_SAVINGS_GOAL`). Computes reactive variables like `balance`, `savedAmount`, and `savingsProgress`.\n    *   [useExpense.js](file:///d:/Projects/Spraveenmonu/Expense%20Tracker/src/context/useExpense.js): Connects components to the global application state cleanly.\n*   **Business Logic & Helpers**:\n    *   [helpers.js](file:///d:/Projects/Spraveenmonu/Expense%20Tracker/src/utils/helpers.js): Houses the spending analyzer `analyzeSpending()`, region detector `detectUserRegion()`, currency formatter `formatCurrency()`, and relative date helper `formatDate()`.\n    *   [categories.js](file:///d:/Projects/Spraveenmonu/Expense%20Tracker/src/utils/categories.js): Holds the object structure mapping for transactions (e.g., Rent, Utilities, Food, Freelance, Salary) with associated icons, hex colors, and categories.\n*   **UI & Views**:\n    *   [App.jsx](file:///d:/Projects/Spraveenmonu/Expense%20Tracker/src/App.jsx): Controls page routing (Dashboard vs. Transactions vs. Insights), mobile responsive sidebar menus, modal states, custom toast alerts, and theme switching.\n    *   [Dashboard.jsx](file:///d:/Projects/Spraveenmonu/Expense%20Tracker/src/components/Dashboard.jsx): Displays summaries and builds Recharts graphs based on chosen filter types.\n    *   [Insights.jsx](file:///d:/Projects/Spraveenmonu/Expense%20Tracker/src/components/Insights.jsx): Leverages algorithms from helpers to render financial guidance and advice card decks.\n\n---\n\n## ⚙️ Getting Started (Local Development)\n\nTo run the project locally, install dependencies and execute Vite's development server:\n\n```bash\n# 1. Install dependencies\nnpm install\n\n# 2. Run the development server\nnpm run dev\n\n# 3. Build the production application\nnpm run build\n\n# 4. Preview the production build locally\nnpm run preview\n\n# 5. Run the linter\nnpm run lint\n```\n",
+      "hasReadme": true,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Gamers",
+      "icon": "globe",
+      "category": "webapp",
+      "techStack": [
+        "Node.js"
+      ],
+      "description": "A high-fidelity, modern Tic Tac Toe game with stunning animations, glassmorphism, and smooth transitions.",
+      "readme": "# Premium Tic Tac Toe\n\nA high-fidelity, modern Tic Tac Toe game with stunning animations, glassmorphism, and smooth transitions.\n\n## ✨ Features\n- **Modern UI**: Dark-themed, glassmorphic design with vibrant gradients.\n- **Dynamic Animations**: \n  - Drawing animations for 'X' and 'O'.\n  - Hover effects with glowing borders.\n  - Winning line animation.\n  - Smooth board-reset transitions.\n- **Scoreboard**: Track wins for both players.\n- **Responsive**: Fully responsive layout for mobile and desktop.\n\n## 🚀 How to Run\n1. Open `index.html` in any modern web browser.\n2. Alternatively, run a local development server:\n   ```bash\n   npx serve .\n   ```\n\n## 🛠️ Developed With\n- **HTML5**: Semantic structure.\n- **CSS3**: Custom properties, Flexbox/Grid, and keyframe animations.\n- **JavaScript**: ES6+ modules and SVG path animation logic.\n- **Typography**: [Outfit](https://fonts.google.com/specimen/Outfit) from Google Fonts.\n",
+      "hasReadme": true,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "House Recommendation",
+      "icon": "file-code",
+      "category": "static",
+      "techStack": [
+        "HTML/CSS"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Malware detection using signature",
+      "icon": "shield",
+      "category": "security",
+      "techStack": [
+        "HTML/CSS",
+        "JavaScript"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Movio",
+      "icon": "code-2",
+      "category": "python",
+      "techStack": [
+        "Flask",
+        "Pandas",
+        "Scikit-learn"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Password",
+      "icon": "shield",
+      "category": "security",
+      "techStack": [
+        "HTML/CSS"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Ransomeware simulator",
+      "icon": "shield",
+      "category": "security",
+      "techStack": [
+        "HTML/CSS",
+        "JavaScript"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Simple firewall rules using iptables",
+      "icon": "shield",
+      "category": "security",
+      "techStack": [
+        "HTML/CSS",
+        "JavaScript"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Simple port scanner",
+      "icon": "shield",
+      "category": "security",
+      "techStack": [
+        "HTML/CSS"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "To Do List Application",
+      "icon": "globe",
+      "category": "webapp",
+      "techStack": [
+        "React",
+        "Vite"
+      ],
+      "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+      "readme": "# React + Vite\n\nThis template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.\n\nCurrently, two official plugins are available:\n\n- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)\n- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)\n\n## React Compiler\n\nThe React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).\n\n## Expanding the ESLint configuration\n\nIf you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.\n",
+      "hasReadme": true,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "URL Shortner",
+      "icon": "globe",
+      "category": "webapp",
+      "techStack": [
+        "Express"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    },
+    {
+      "name": "Weather Application",
+      "icon": "code-2",
+      "category": "python",
+      "techStack": [
+        "FastAPI"
+      ],
+      "description": null,
+      "readme": null,
+      "hasReadme": false,
+      "status": "idle",
+      "url": null
+    }
+  ],
+  "buildTime": "2026-08-22T05:52:35.943Z",
+  "totalProjects": 18,
+  "categories": {
+    "webapp": 7,
+    "python": 2,
+    "security": 8,
+    "static": 1,
+    "other": 0
+  }
+}
